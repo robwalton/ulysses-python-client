@@ -26,3 +26,5 @@ Implemented so far:
 - [ ]  open
 - [ ]  open-all, open-recent, open-favorites
 - [x]  authorize
+
+The callback receiver is currently pretty slow taking ~.4s.
