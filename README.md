@@ -1,7 +1,7 @@
 # ulysses-python-client
-A python x-callback-url client for Ulysses.
+A python [x-callback-url](http://x-callback-url.com) client for [Ulysses](https://ulyssesapp.com).
 
-Will provide a python API to [Ulysses](https://ulyssesapp.com)' [x-callback-url scheme](https://ulyssesapp.com/kb/x-callback-url/).
+Will provide a python API to Ulysses' [x-callback-url scheme](https://ulyssesapp.com/kb/x-callback-url/). Destined for use in [Alfred](https://www.alfredapp.com)'s [Ulysses worfklow](https://github.com/robwalton/alfred-ulysses-workflow).
 
 Implemented so far:
 
