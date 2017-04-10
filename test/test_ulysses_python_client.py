@@ -42,8 +42,8 @@ MANUALLY_CONFIGURED_ULYSSES_PYTHON_CLIENT_PLAYGROUND_ID = 'd5TuSlVXQwZnIWMN0DusK
 PLAYGROUND_ID = MANUALLY_CONFIGURED_ULYSSES_PYTHON_CLIENT_PLAYGROUND_ID
 PLAYGROUND_PATH = '/ulysses-python-client-playground'
 # 
-# [ ]  new-sheet
-# [ ]  new-group
+# [x]  new-sheet
+# [x]  new-group
 # [ ]  insert
 # [ ]  attach-note
 # [ ]  update-note
