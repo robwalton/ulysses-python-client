@@ -13,7 +13,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-CALLBACK_PIPE = '/tmp/ulysses-python-client-x-callback-url-handler-pipe'
 
 
 from AppKit import NSWorkspace  # @UnresolvedImport
@@ -66,16 +65,6 @@ def urlcall(url, leave_ulysses_in_background=True):
         [ns_url], None, options,  None, None)
     return read_last_line_from_pipe().strip()
 
-
-def read_last_line_from_pipe():
-    assert os.path.exists(CALLBACK_PIPE)
-    with open(CALLBACK_PIPE, 'r') as pipe:
-        return pipe.readline()
-
-
-def ensure_callback_handler_pipe_exists():
-    if not os.path.exists(CALLBACK_PIPE):
-        os.mkfifo(CALLBACK_PIPE)
 
 
 def decode_reply(msg):
