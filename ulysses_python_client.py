@@ -1,6 +1,6 @@
 
 
-from xcallbackurl import call_ulysses
+from xcall_ulysses import call_ulysses
 import json
 import logging
 import pprint
