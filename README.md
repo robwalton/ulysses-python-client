@@ -3,7 +3,7 @@ A python [x-callback-url](http://x-callback-url.com) client for [Ulysses](https:
 
 Will provide a python API to Ulysses' [x-callback-url scheme](https://ulyssesapp.com/kb/x-callback-url/). Destined for use in [Alfred](https://www.alfredapp.com)'s [Ulysses worfklow](https://github.com/robwalton/alfred-ulysses-workflow).
 
-Implemented so far:
+## Implemented so far:
 
 - [x]  new-sheet
 - [x]  new-group
@@ -27,4 +27,5 @@ Implemented so far:
 - [ ]  open-all, open-recent, open-favorites
 - [x]  authorize
 
-The callback receiver is currently pretty slow taking ~.4s.
+## TODO
+- Call `bin/xattr -dr com.apple.quarantine "xcall.app"` to authorise`
