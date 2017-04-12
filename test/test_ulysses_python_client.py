@@ -26,9 +26,9 @@ These will be removed at the end of the tests
 
 
 import ulysses_python_client as upc
-import xcallbackurl
+import xcall_ulysses
 import pytest
-from xcallbackurl import XCallbackError
+from xcall_ulysses import XCallbackError
 import logging
 import random
 import string
@@ -67,7 +67,7 @@ PLAYGROUND_PATH = '/ulysses-python-client-playground'
 
 
 def setup_module(module):
-    xcallbackurl.token_provider.token = MANUALLY_CONFIGURED_TOKEN
+    xcall_ulysses.token_provider.token = MANUALLY_CONFIGURED_TOKEN
 
   
 def test_get_version():
@@ -94,14 +94,14 @@ def test_get_root_items__non_recursive():
     
 
 def test_get_root_items_with_wrong_access_token():
-    original_token = xcallbackurl.token_provider.token
+    original_token = xcall_ulysses.token_provider.token
     try:
-        xcallbackurl.token_provider.token = 'not_the_right_token'
+        xcall_ulysses.token_provider.token = 'not_the_right_token'
         with pytest.raises(XCallbackError) as excinfo:
             upc.get_root_items()
         assert 'Access denied.. Code = 4' in str(excinfo.value)
     finally:
-        xcallbackurl.token_provider.token = original_token
+        xcall_ulysses.token_provider.token = original_token
 
 
 def test_check__ulysses_python_client_test__matchs_id():
