@@ -28,4 +28,4 @@ Will provide a python API to Ulysses' [x-callback-url scheme](https://ulyssesapp
 - [x]  authorize
 
 ## TODO
-- Call `bin/xattr -dr com.apple.quarantine "xcall.app"` to authorise`
+- Call `xattr -dr com.apple.quarantine "bin/xcall.app"` to authorise unsigned xcall app programatically
