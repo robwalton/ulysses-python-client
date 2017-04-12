@@ -29,3 +29,5 @@ Will provide a python API to Ulysses' [x-callback-url scheme](https://ulyssesapp
 
 ## TODO
 - Call `xattr -dr com.apple.quarantine "bin/xcall.app"` to authorise unsigned xcall app programatically
+- Document!
+- get_item and ??? should work with filters too
