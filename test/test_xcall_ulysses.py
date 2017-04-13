@@ -21,18 +21,20 @@ class TestXCallApp:
     # @pytest.mark.skip(reason="speed test takes quite long")
     def test_speed_or_urlcall(self):
         t_start = time.time()
+        # Run once to ensure ulysses is open
+        xcall_ulysses.xcall('ulysses://x-callback-url/get-version')
         n = 10
         for i in range(n):  # @UnusedVariable
             xcall_ulysses.xcall('ulysses://x-callback-url/get-version')
         dt = time.time() - t_start
         time_per_run = dt / n
-        assert time_per_run < 0.1
+        assert time_per_run < 0.15
 
 
 def test_encode_request():
 
     action_parameter_dict = {'param1': 'val1', 'param2': 'val2'}
-    result = xcall_ulysses.encode_request('some-action', action_parameter_dict)
+    result = xcall_ulysses.build_url('some-action', action_parameter_dict)
 
     split_result = urlparse.urlsplit(result)
     args = urlparse.parse_qs(split_result.query)
