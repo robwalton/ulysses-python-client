@@ -14,7 +14,7 @@ Will provide a python API to Ulysses' [x-callback-url scheme](https://ulyssesapp
 - [ ]  attach-image
 - [ ]  attach-keywords
 - [ ]  remove-keywords
-- [ ]  set-group-title
+- [x]  set-group-title
 - [ ]  set-sheet-title
 - [ ]  move
 - [ ]  copy

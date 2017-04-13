@@ -21,7 +21,6 @@ from xcall_ulysses import XCallbackError
 import logging
 import random
 import string
-from ulysses_python_client import isID
 
 
 logger = logging.getLogger(__name__)
@@ -32,29 +31,6 @@ MANUALLY_CONFIGURED_TOKEN = 'c6e4ef1a29e44e62acdcee4e5eabc423'
 
 
 PLAYGROUND_NAME = 'ulysses-python-client-playground'
-
-
-# [x]  new-sheet
-# [x]  new-group
-# [ ]  insert
-# [ ]  attach-note
-# [ ]  update-note
-# [ ]  remove-note
-# [ ]  attach-image
-# [ ]  attach-keywords
-# [ ]  remove-keywords
-# [ ]  set-group-title
-# [ ]  set-sheet-title
-# [ ]  move
-# [ ]  copy
-# [x]  trash
-# [x]  get-item
-# [x]  get-root-items
-# [ ]  read-sheet
-# [ ]  get-quick-look-url
-# [ ]  open
-# [ ]  open-all, open-recent, open-favorites
-# [x]  authorize
 
 
 # pyunit fixture
@@ -74,14 +50,25 @@ def playground_id():
     return playground_grp.identifier
 
 
-@pytest.fixture
-def playground_group():
-    return upc.get_item(playground_id(), recursive=True)
+@pytest.fixture(scope='module')
+def treename():
+    return 'tree-' + randomword(8)
+
+
+@pytest.fixture(scope='module')
+def treegroup(treename):
+    treegroup_id = playground_group().get_group_by_title(treename).identifier
+    return upc.get_item(treegroup_id, recursive=True)
 
 
 @pytest.fixture(scope='class')
 def random_name():
     return randomword(8)
+
+
+@pytest.fixture
+def playground_group():
+    return upc.get_item(playground_id(), recursive=True)
 
 
 # Test up calls
@@ -121,60 +108,79 @@ def test_get_root_items_with_wrong_access_token():
         xcall_ulysses.token_provider.token = original_token
 
 
-def test_check_play_ground_exists(playground_id):
+@pytest.mark.skip(reason='Takes 20s to fail for some reason')
+def test_get_item_fails():
+    identifier = 'x' * 22
+    with pytest.raises(XCallbackError):
+        upc.get_item(identifier)
+
+
+def test_check_playground_exists(playground_id):
     item = upc.get_item(playground_id, recursive=False)
     assert item.type == 'group'
     assert item.title == PLAYGROUND_NAME
 
 
-class TestNewGroupAndTrashing:
+class TestNewGroupAndTrash:
 
     def test_new_group__parent_id(self, random_name, playground_id):
         name = 'new-group-by-id-' + random_name
-        self.new_group(name, playground_id)
-        self.trash(name)
+        identifier = upc.new_group(name, playground_id)
+        self._check_group(name, playground_id)
+        upc.trash(identifier)
 
     def test_new_group__parent_abs_path(self, random_name):
         name = 'new-group-by-abs-path-' + random_name
-        self.new_group(name, '/ulysses-python-client-playground')
-        self.trash(name)
+        identifier = upc.new_group(name, '/ulysses-python-client-playground')
+        self._check_group(name, '/ulysses-python-client-playground')
+        upc.trash(identifier)
 
     def test_new_group__parent_rel_path(self, random_name):
         name = 'new-group-by-rel-path-' + random_name
-        self.new_group(name, 'ulysses-python-client-playground')
-        self.trash(name)
-
-    def new_group(self, name, parent):
-        identifier = upc.new_group(name, parent)
-        newgroup = playground_group().get_group_by_title(name)
-        assert newgroup.title == name
-        assert newgroup.identifier == identifier
-
-    def trash(self, name):
-        identifier = playground_group().get_group_by_title(name).identifier
-        assert isID(identifier)
+        identifier = upc.new_group(name, 'ulysses-python-client-playground')
+        self._check_group(name, 'ulysses-python-client-playground')
         upc.trash(identifier)
 
+    def _check_group(self, name, parent):
+        newgroup = playground_group().get_group_by_title(name)
+        assert newgroup.title == name
 
-@pytest.fixture(scope='module')
-def treename():
-    return 'tree-' + randomword(8)
+
+def test_trash(playground_id, random_name):
+    name = 'test_trash-' + random_name
+    identifier = upc.new_group(name, playground_id)
+    playground_group().get_group_by_title(name)
+    upc.trash(identifier)
+    with pytest.raises(KeyError):
+        playground_group().get_group_by_title(name)
 
 
-@pytest.fixture(scope='module')
-def treegroup(treename):
-    treegroup_id = playground_group().get_group_by_title(treename).identifier
-    return upc.get_item(treegroup_id, recursive=True)
+def test_set_group_title(playground_id, random_name):
+    name = 'test_set_group_title-' + random_name
+    identifier = upc.new_group(name, playground_id)
+    group = upc.get_item(identifier, False)
+    assert group.name == name
+    upc.set_group_title(identifier, name + 'modified')
+    group = upc.get_item(identifier, False)
+    assert group.name == name + 'modified'
+    upc.trash(identifier)
+
+
+# def test_move(playground_id, random_name):
+#     sheetname = 'test_move_sheet-' + random_name
+#     targetname = 'test_move_target-' + random_name
+#     sheet = upc.new_group(sheetname, playground_id)
+    
+
+@pytest.mark.incremental
+class TestBuildAndReadTestTree:
+
     #     tree-abhejdgy
     #         upcsheet
     #         group1
     #             sheet1a
     #             sheet1b
     #         group2
-
-
-@pytest.mark.incremental
-class TestBuildAndReadTestTree:
 
     def test_build_tree_groups(self, treename):
         tree_path = '/' + PLAYGROUND_NAME + '/' + treename

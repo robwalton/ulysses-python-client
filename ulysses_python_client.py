@@ -66,7 +66,18 @@ def new_group(name, parent=None, index=None):
     if index:
         assert str(int(index)) == index, 'index must be an integer'
         params['index'] = index
-    return call_ulysses('new-group', params)['targetId']
+    identifier = call_ulysses('new-group', params)['targetId']
+    assert isID(identifier)
+    return identifier
+
+
+def set_group_title(group, new_title):
+    """Change group's title and return id.
+
+    group -- Name, path or id of group
+    new_title -- New title string
+    """
+    call_ulysses('set-group-title', {'group': group, 'title': new_title})
 
 
 def new_sheet(text, group=None, format_='markdown', index=None):
@@ -85,7 +96,9 @@ def new_sheet(text, group=None, format_='markdown', index=None):
     if index:
         assert str(int(index)) == index, 'index must be an integer'
         params['index'] = index
-    return call_ulysses('new-sheet', params)['targetId']
+    identifier = call_ulysses('new-sheet', params)['targetId']
+    assert isID(identifier)
+    return identifier
 
 
 def get_item(identifier, recursive=False):
@@ -276,3 +289,5 @@ def filter_items(items, title, type_='sheet_or_group'):
                 (type_ == 'sheet_or_group' or item.type == type_)):
             filtered_items.append(item)
     return filtered_items
+
+
