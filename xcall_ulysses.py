@@ -69,8 +69,8 @@ def call_ulysses(action, params={}, send_access_token=False,
 
 def xcall(url):
     """Send a URL to Ulyyses via xcall and return result as dictionary.
-    
-    url -- un-encoded URL to send. Will be encoded before sending. 
+
+    url -- un-encoded URL to send. Will be encoded before sending.
 
     May raise XCallbackError with error message and code from Ulysses.
     """

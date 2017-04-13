@@ -19,6 +19,14 @@ logging.basicConfig(filename='ulysses-python-client.log', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+def isID(value):
+    """Checks if value looks like a Ulysses ID; i.e. is 22 char long.
+
+    Not an exact science; but good enougth to prevent most mistakes.
+    """
+    return len(value) == 22
+
+
 # Ulysses-calls
 
 def authorize():
@@ -86,6 +94,7 @@ def get_item(identifier, recursive=False):
     identifier -- id of sheet (not name or path)
     recursive -- return sub-groups of group if True
     """
+    assert isID(identifier)
     params = {'id': identifier, 'recursive': 'YES' if recursive else 'NO'}
     reply = call_ulysses('get-item', params, send_access_token=True)
     item = json.loads(reply['item'])
@@ -104,6 +113,7 @@ def trash(identifier):
 
     identifier -- id of sheet (not name or path)
     """
+    assert isID(identifier)
     call_ulysses('trash', {'id': identifier}, send_access_token=True)
 
 

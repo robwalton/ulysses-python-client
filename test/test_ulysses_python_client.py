@@ -21,6 +21,7 @@ from xcall_ulysses import XCallbackError
 import logging
 import random
 import string
+from ulysses_python_client import isID
 
 
 logger = logging.getLogger(__name__)
@@ -62,7 +63,7 @@ def setup_module(module):
     xcall_ulysses.token_provider.token = MANUALLY_CONFIGURED_TOKEN
 
 
-@pytest.fixture('module')
+@pytest.fixture(scope='module')
 def playground_id():
     groups = upc.get_root_items(recursive=False)
     icloud_grp = groups[0]
@@ -151,6 +152,7 @@ class TestNewGroupAndTrashing:
 
     def trash(self, name):
         identifier = playground_group().get_group_by_title(name).identifier
+        assert isID(identifier)
         upc.trash(identifier)
 
 
