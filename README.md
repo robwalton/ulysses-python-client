@@ -16,18 +16,17 @@ Will provide a python API to Ulysses' [x-callback-url scheme](https://ulyssesapp
 - [ ]  remove-keywords
 - [x]  set-group-title
 - [ ]  set-sheet-title
-- [ ]  move
-- [ ]  copy
+- [x]  move
+- [x]  copy
 - [x]  trash
 - [x]  get-item
 - [x]  get-root-items
 - [ ]  read-sheet
-- [ ]  get-quick-look-url
-- [ ]  open
-- [ ]  open-all, open-recent, open-favorites
+- [x]  get-quick-look-url
+- [x]  open
+- [x]  open-all, open-recent, open-favorites
 - [x]  authorize
 
 ## TODO
-- Call `xattr -dr com.apple.quarantine "bin/xcall.app"` to authorise unsigned xcall app programatically
-- Document!
 - get_item and ??? should work with filters too
+- rename all if instancdes of identifier, where group, parh or None would also work

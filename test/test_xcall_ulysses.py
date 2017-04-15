@@ -16,7 +16,7 @@ class TestXCallApp:
     def test_xcall_to_ulysses_error(self):
         with pytest.raises(XCallbackError) as excinfo:
             xcall_ulysses.xcall('ulysses://x-callback-url/not-a-valid-action')
-        assert 'Invalid Action. Code = 100' in str(excinfo.value)
+        assert 'Invalid Action Code = 100' in str(excinfo.value)
 
     # @pytest.mark.skip(reason="speed test takes quite long")
     def test_speed_or_urlcall(self):

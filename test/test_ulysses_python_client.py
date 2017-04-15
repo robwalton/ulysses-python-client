@@ -21,6 +21,8 @@ from xcall_ulysses import XCallbackError
 import logging
 import random
 import string
+import time
+import os.path
 
 
 logger = logging.getLogger(__name__)
@@ -32,6 +34,18 @@ MANUALLY_CONFIGURED_TOKEN = 'c6e4ef1a29e44e62acdcee4e5eabc423'
 
 PLAYGROUND_NAME = 'ulysses-python-client-playground'
 
+TESTID = 'v_u1RvMlGjJHqofzWdvCNw'
+
+
+###
+
+# def test_main():
+#     test_sheet = upc.get_item(TESTID, recursive=False)
+#     print test_sheet
+
+###
+
+
 
 # pyunit fixture
 
@@ -41,13 +55,25 @@ def setup_module(module):
 
 @pytest.fixture(scope='module')
 def playground_id():
-    groups = upc.get_root_items(recursive=False)
-    icloud_grp = groups[0]
+    """Return id of pre-existing playground group."""
+
+    icloud_grp = upc.get_root_items(recursive=False)[0]
     assert icloud_grp.title == 'iCloud'
-    # get it directly in order to access its containers
     icloud_grp = upc.get_item(icloud_grp.identifier, True)
-    playground_grp = icloud_grp.get_group_by_title(PLAYGROUND_NAME)
-    return playground_grp.identifier
+    return icloud_grp.get_group_by_title(PLAYGROUND_NAME).identifier
+
+
+@pytest.fixture(scope='module')
+def testgroup_id(playground_id):
+    """Return if of group for this test run and destroy on completion"""
+
+    identifier = upc.new_group(randomword(8), playground_id)
+    yield identifier
+    upc.trash(identifier)
+
+
+def group(identifier):
+    return upc.get_item(identifier, recursive=True)
 
 
 @pytest.fixture(scope='module')
@@ -86,6 +112,7 @@ def test_authorize():
 
 def test_get_root_items__non_recursive():
     items = upc.get_root_items(recursive=False)
+
     assert len(items) >= 1
     assert items[0].title == 'iCloud'
     assert isinstance(items[0], upc.Group)
@@ -94,6 +121,7 @@ def test_get_root_items__non_recursive():
 def test_get_root_items__recursive():
     groups = upc.get_root_items(recursive=True)
     icloud_grp = groups[0]
+
     assert icloud_grp.title == 'iCloud'
 
 
@@ -103,7 +131,7 @@ def test_get_root_items_with_wrong_access_token():
         xcall_ulysses.token_provider.token = 'not_the_right_token'
         with pytest.raises(XCallbackError) as excinfo:
             upc.get_root_items()
-        assert 'Access denied.. Code = 4' in str(excinfo.value)
+        assert 'Access denied. Code = 4' in str(excinfo.value)
     finally:
         xcall_ulysses.token_provider.token = original_token
 
@@ -121,125 +149,108 @@ def test_check_playground_exists(playground_id):
     assert item.title == PLAYGROUND_NAME
 
 
-class TestNewGroupAndTrash:
+def test_new_group(testgroup_id):
+    name = 'test_new_group'
+    identifier = upc.new_group(name, testgroup_id)
 
-    def test_new_group__parent_id(self, random_name, playground_id):
-        name = 'new-group-by-id-' + random_name
-        identifier = upc.new_group(name, playground_id)
-        self._check_group(name, playground_id)
-        upc.trash(identifier)
-
-    def test_new_group__parent_abs_path(self, random_name):
-        name = 'new-group-by-abs-path-' + random_name
-        identifier = upc.new_group(name, '/ulysses-python-client-playground')
-        self._check_group(name, '/ulysses-python-client-playground')
-        upc.trash(identifier)
-
-    def test_new_group__parent_rel_path(self, random_name):
-        name = 'new-group-by-rel-path-' + random_name
-        identifier = upc.new_group(name, 'ulysses-python-client-playground')
-        self._check_group(name, 'ulysses-python-client-playground')
-        upc.trash(identifier)
-
-    def _check_group(self, name, parent):
-        newgroup = playground_group().get_group_by_title(name)
-        assert newgroup.title == name
+    assert upc.get_item(identifier, False).title == name
 
 
-def test_trash(playground_id, random_name):
-    name = 'test_trash-' + random_name
-    identifier = upc.new_group(name, playground_id)
-    playground_group().get_group_by_title(name)
+def test_trash(testgroup_id):
+    identifier = upc.new_group('test_trash', testgroup_id)
+    group(testgroup_id).get_group_by_title('test_trash')
+
     upc.trash(identifier)
+
     with pytest.raises(KeyError):
-        playground_group().get_group_by_title(name)
+        group(testgroup_id).get_group_by_title('test_trash')
 
 
-def test_set_group_title(playground_id, random_name):
-    name = 'test_set_group_title-' + random_name
-    identifier = upc.new_group(name, playground_id)
+def test_set_group_title(testgroup_id):
+    name = 'test_set_group_title'
+    identifier = upc.new_group(name, testgroup_id)
+
+    upc.set_group_title(identifier, name + '_modified')
+
     group = upc.get_item(identifier, False)
-    assert group.name == name
-    upc.set_group_title(identifier, name + 'modified')
-    group = upc.get_item(identifier, False)
-    assert group.name == name + 'modified'
-    upc.trash(identifier)
+    assert group.title == name + '_modified'
 
 
-# def test_move(playground_id, random_name):
-#     sheetname = 'test_move_sheet-' + random_name
-#     targetname = 'test_move_target-' + random_name
-#     sheet = upc.new_group(sheetname, playground_id)
-    
+def test_set_sheet_title(testgroup_id):
+    identifier = upc.new_sheet('test_set_sheet_title', testgroup_id)
+    new_title = "test_set_sheet_title abc\1/2'3@"
+    # shows up as # test_set_sheet_title%20abc%01/2%273%40
 
-@pytest.mark.incremental
-class TestBuildAndReadTestTree:
+    upc.set_sheet_title(identifier, new_title, 'heading1')
+    upc.open(identifier)
+    time.sleep(10)
 
-    #     tree-abhejdgy
-    #         upcsheet
-    #         group1
-    #             sheet1a
-    #             sheet1b
-    #         group2
+    sheet = upc.get_item(identifier)
+    assert sheet.title == new_title
+    assert sheet.type == 'heading1'
 
-    def test_build_tree_groups(self, treename):
-        tree_path = '/' + PLAYGROUND_NAME + '/' + treename
-        upc.new_group(treename, PLAYGROUND_NAME)
-        # Note reverse order as manually sortd and new ones go to top
-        upc.new_group('group2', tree_path)
-        upc.new_group('group1', tree_path)
 
-    def test_build_tree_sheets(self, treename):
-        tree_path = '/' + PLAYGROUND_NAME + '/' + treename
-        upc.new_sheet('upcsheet', tree_path)
-        # Note reverse order as manually sortd and new ones go to top
-        upc.new_sheet('sheet1b', tree_path + '/group1')
-        upc.new_sheet('sheet1a', tree_path + '/group1')
+def test_move__to_group(testgroup_id):
+    sheetid = upc.new_sheet('test_move__to_group-sheet', testgroup_id)
+    groupid = upc.new_group('test_move__to_group-group', testgroup_id)
 
-    def test_get_item__group_non_recursive(self, treename):
-        treegrp_id = playground_group().get_group_by_title(treename).identifier
-        return upc.get_item(treegrp_id, recursive=False)
-        assert treegroup.title == treename
-        assert treegroup.sheets[0].title == 'upcsheet'
-        assert treegroup.containers is None  # unknown
+    upc.move(sheetid, groupid)
 
-    def test_get_item__group_recursive(self, treename, treegroup):
-        assert treegroup.title == treename
+    group(groupid).get_sheet_by_title('test_move__to_group-sheet')
 
-        # upcsheet
-        assert treegroup.sheets[0].title == 'upcsheet'
 
-        # group1
-        group1 = treegroup.containers[0]
-        assert group1.title == 'group1'
-        assert len(group1.sheets) == 2
-        assert group1.containers == []
+def test_move__to_index(testgroup_id):
+    group_id = upc.new_group('test_move__to_index-group', testgroup_id)
+    sheet1_id = upc.new_sheet('sheet1', group_id)
+    upc.new_sheet('sheet2', group_id)
+    group_ = group(group_id)
+    assert group_.sheets[0].title == 'sheet2'
+    assert group_.sheets[1].title == 'sheet1'
 
-        # sheet1a
-        sheet1a = group1.sheets[0]
-        assert sheet1a.title == 'sheet1a'
+    upc.move(sheet1_id, index=0, silent_mode=True)
 
-        # sheet1b
-        sheet1b = group1.sheets[1]
-        assert sheet1b.title == 'sheet1b'
+    group_ = group(group_id)
+    assert group_.sheets[0].title == 'sheet1'
+    assert group_.sheets[1].title == 'sheet2'
 
-        # group2
-        group2 = treegroup.containers[1]
-        assert group2.title == 'group2'
-        assert group2.sheets == []
-        assert group2.containers == []
 
-    def test_get_item_sheet(self, treename, treegroup):
-        upcsheet_id = treegroup.sheets[0].identifier
-        upcsheet = upc.get_item(upcsheet_id)
-        assert upcsheet.title == 'upcsheet'
-        assert upcsheet.type == 'sheet'
+def test_copy__to_index(testgroup_id):
+    group_id = upc.new_group('test_copy__to_index-group', testgroup_id)
+    sheet1_id = upc.new_sheet('sheet0', group_id)
+    upc.new_sheet('sheet2', group_id)
+    upc.new_sheet('sheet1', group_id)
 
-    def test_trash_tree(self, treename):
-        treegrp_id = playground_group().get_group_by_title(treename).identifier
-        upc.trash(treegrp_id)
-        with pytest.raises(KeyError):
-            playground_group().get_group_by_title(treename)
+    upc.copy(sheet1_id, group_id, 1, silent_mode=True)
+
+    group_ = group(group_id)
+    assert group_.sheets[0].title == 'sheet1'
+    assert group_.sheets[1].title == 'sheet0'
+    assert group_.sheets[2].title == 'sheet2'
+
+
+def test_get_quick_look_url__with_sheet(testgroup_id):
+    sht_id = upc.new_sheet('test_get_quick_look_url__with_sheet', testgroup_id)
+
+    path = upc.get_quick_look_url(sht_id)
+
+    assert os.path.exists(path)
+
+
+@pytest.mark.skip('visual check')
+def test__open__open_all__open_recent__open_favorites(testgroup_id):
+
+    sheet_id = upc.new_sheet('test_open\n\nand some text', testgroup_id)
+    upc.open(sheet_id)
+    time.sleep(5)
+
+    upc.open_all()
+    time.sleep(5)
+
+    upc.open_recent()
+    time.sleep(5)
+
+    upc.open_favorites()
+    time.sleep(5)
 
 
 class TestItemConstructors():

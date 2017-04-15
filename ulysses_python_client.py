@@ -10,12 +10,15 @@ and Sheets
 """
 
 
-from xcall_ulysses import call_ulysses
+from xcall_ulysses import call_ulysses, call
 import json
 import logging
+import urllib
 
 
-logging.basicConfig(filename='ulysses-python-client.log', level=logging.INFO)
+logging.basicConfig(filename='ulysses-python-client.log',
+                    format='%(asctime)s %(message)s',
+                    level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
@@ -46,9 +49,8 @@ def get_root_items(recursive=True):
     recursive -- recurse tree below each root item if True
     """
 
-    recursive_par = 'YES' if recursive else 'NO'
-    reply = call_ulysses(
-        'get-root-items', {'recursive': recursive_par}, send_access_token=True)
+    recursive = 'YES' if recursive else 'NO'
+    reply = call_ulysses('get-root-items', locals(), send_access_token=True)
 
     item_list = json.loads(reply['items'])
     return [Group(**item) for item in item_list]
@@ -60,57 +62,59 @@ def new_group(name, parent=None, index=None):
     parent -- Name, path or id of parent. Create in top-level if None
     index -- Position of group in parent. 0 is first.
     """
-    params = {'name': name}
-    if parent:
-        params['parent'] = parent
-    if index:
-        assert str(int(index)) == index, 'index must be an integer'
-        params['index'] = index
-    identifier = call_ulysses('new-group', params)['targetId']
+    identifier = call_ulysses('new-group', locals())['targetId']
     assert isID(identifier)
     return identifier
 
 
-def set_group_title(group, new_title):
+def set_group_title(group, title):
     """Change group's title and return id.
 
     group -- Name, path or id of group
-    new_title -- New title string
+    title -- New title string
     """
-    call_ulysses('set-group-title', {'group': group, 'title': new_title})
+    call_ulysses('set-group-title', locals(), send_access_token=True)
 
 
-def new_sheet(text, group=None, format_='markdown', index=None):
+def set_sheet_title(sheet, title, type):  # @ReservedAssignment
+    """Change first paragraph of sheet.
+
+    sheet -- Identifier of sheet to chang
+    title -- New title string. Will be URL-encoded
+    type -- The markup type of the title. Will be 'heading1'...'heading6',
+            'comment' or 'filename' (on external folders with title
+            e.g '@: My Filename'
+    """
+    assert type in ('heading1', 'heading2', 'heading3', 'heading4', 'heading5',
+                    'heading6', 'comment', 'filename')
+    # title = urllib.quote(title)  # seems not tp be unencoded
+    call_ulysses('set-sheet-title', locals(), send_access_token=True)
+
+
+def new_sheet(text, group=None, format='markdown',  # @ReservedAssignment
+              index=None):
     """Create new sheet and return id.
 
     parent -- Name, path or id of parent. Create in top-level if None
     index -- Position of group in parent. 0 is first.
     format_ -- 'markdown', 'text' or 'html'
     """
-    params = {'text': text}
-    if format_:
-        assert format_ in ('markdown', 'text', 'html')
-        params['format'] = format_
-    if group:
-        params['group'] = group
-    if index:
-        assert str(int(index)) == index, 'index must be an integer'
-        params['index'] = index
-    identifier = call_ulysses('new-sheet', params)['targetId']
+    assert format in ('markdown', 'text', 'html', None)
+    identifier = call_ulysses('new-sheet', locals())['targetId']
     assert isID(identifier)
     return identifier
 
 
-def get_item(identifier, recursive=False):
+def get_item(id, recursive=False):  # @ReservedAssignment
     """Return Group or Sheet instance.
 
     identifier -- id of sheet (not name or path)
     recursive -- return sub-groups of group if True
     """
-    assert isID(identifier)
-    params = {'id': identifier, 'recursive': 'YES' if recursive else 'NO'}
-    reply = call_ulysses('get-item', params, send_access_token=True)
-    item = json.loads(reply['item'])
+    assert isID(id)
+    recursive = 'YES' if recursive else 'NO'
+    reply = call_ulysses('get-item', locals(), send_access_token=True)
+    item = json.loads(urllib.unquote(reply['item']))
 
     type_ = item['type']
     if type_ == 'group':
@@ -121,13 +125,85 @@ def get_item(identifier, recursive=False):
         raise ValueError('Unsupported type: ' + type_)
 
 
-def trash(identifier):
+def trash(id):  # @ReservedAssignment
     """Move item to trash.
 
     identifier -- id of sheet (not name or path)
     """
-    assert isID(identifier)
-    call_ulysses('trash', {'id': identifier}, send_access_token=True)
+    assert isID(id)
+    call_ulysses('trash', locals(), send_access_token=True)
+
+
+def move(id, targetGroup=None, index=None,  # @ReservedAssignment
+         silent_mode=False):
+    """Move item to group and/or index (order in a group)
+
+    identifier -- id of sheet to move
+    targetGroup -- id, path or group-name to move to. Optional if index
+                   provided
+    index -- integer position in group to mve to. Optional if targetIdentifier
+             provided
+    """
+    assert targetGroup or (index is not None)
+    params = dict(locals())
+    del params['silent_mode']
+    call_ulysses(
+        'move', params, send_access_token=True, silent_mode=silent_mode)
+
+
+def copy(id, targetGroup=None, index=None,  # @ReservedAssignment
+         silent_mode=False):
+    """Copy item to group and/or index (order in a group)
+
+    identifier -- id of sheet to move
+    targetGroup -- id, path or group-name to move to. Optional if index
+                   provided
+    index -- integer position in group to mve to. Optional if targetIdentifier
+             provided
+    """
+    assert targetGroup or index
+    params = dict(locals())
+    del params['silent_mode']
+    call_ulysses(
+        'copy', params, send_access_token=True, silent_mode=silent_mode)
+
+
+def get_quick_look_url(id):  # @ReservedAssignment
+    """Get the QuickLook URL for a sheet, i.e. location on the file system.
+
+    id -- id of sheet(not path or name)
+    """
+    assert isID(id)
+    url = call_ulysses('get-quick-look-url', locals())['url']
+    uri = urllib.unquote(url).replace('\\', '')
+    return uri.replace('file://', '')
+
+
+def open(id):  # @ReservedAssignment
+    """Open item, bringing Ulysses forward
+
+    identifier -- id of sheet to move
+    id -- id, path or group-name to open
+    """
+    assert isID(id)
+    # Open directly rather than via xcall, as xcall will not bring Ulysses
+    # forward
+    call('ulysses://x-callback-url/open?id=%s' % id)
+
+
+def open_all():  # @ReservedAssignment
+    """Open special group 'All', bringing Ulysses forward."""
+    call('ulysses://x-callback-url/open-all')
+
+
+def open_recent():  # @ReservedAssignment
+    """Open special group 'Last 7 Days', bringing Ulysses forward."""
+    call('ulysses://x-callback-url/open-all')
+
+
+def open_favorites():  # @ReservedAssignment
+    """Open special group 'All', bringing Ulysses forward."""
+    call('ulysses://x-callback-url/open-favorites')
 
 
 # Group & Sheet classes
@@ -136,7 +212,7 @@ class AbstractItem(object):
 
     def __init__(self, title=None, type=None,   # @ReservedAssignment
                  identifier=None, hasLifetimeIdentifier=None):
-        self.title = title
+        self.title = urllib.unquote(title)
         self.type = type
         self.identifier = identifier
         self.hasLifetimeIdentifier = hasLifetimeIdentifier
