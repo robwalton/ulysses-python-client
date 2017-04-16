@@ -98,11 +98,84 @@ def new_sheet(text, group=None, format='markdown',  # @ReservedAssignment
     parent -- Name, path or id of parent. Create in top-level if None
     index -- Position of group in parent. 0 is first.
     format_ -- 'markdown', 'text' or 'html'
+
     """
     assert format in ('markdown', 'text', 'html', None)
     identifier = call_ulysses('new-sheet', locals())['targetId']
     assert isID(identifier)
     return identifier
+
+
+def insert(id, text, format='markdown', position='end',  # @ReservedAssignment
+           newline=None):
+    """Insert or append text to a sheet.
+
+    id -- id of sheet
+    text -- text to append
+    format -- 'markdown', 'text' or 'html'
+    position -- 'begin' or 'end'
+    newline -- 'prepend', 'append', 'enclose' or None
+
+    """
+    assert isID(id)
+    assert format in ('markdown', 'text', 'html')
+    assert position in ('begin', 'end')
+    assert newline in ('prepend', 'append', 'enclose', None)
+    call_ulysses('insert', locals(), send_access_token=True)
+
+
+def attach_keywords(id, keywords):  # @ReservedAssignment
+    """Attach keywords to sheet.
+
+    id -- id of sheet to modify
+    keywords -- list of keywords
+    """
+    assert isID(id)
+    keywords = ','.join(keywords)
+    call_ulysses('attach-keywords', locals())
+
+
+def remove_keywords(id, keywords):  # @ReservedAssignment
+    """Remove keywords from a sheet.
+
+    id -- id of sheet to modify
+    keywords -- list of keywords
+    """
+    assert isID(id)
+    keywords = ','.join(keywords)
+    call_ulysses('remove-keywords', locals(), send_access_token=True)
+
+
+def attach_note(id, text, format='markdown'):  # @ReservedAssignment
+    """Add a new note attachment to a sheet.
+
+    id -- id of sheet
+    text -- text of note
+    format -- 'markdown', 'text' or 'html'
+    """
+    assert format in ('markdown', 'text', 'html')
+    call_ulysses('attach-note', locals())
+
+
+def update_note(id, index, text, format='markdown'):  # @ReservedAssignment
+    """Update an existing note attachment on a sheet.
+
+    id -- id of sheet
+    index -- index of note on sheet (starting at 0)
+    text -- text of note
+    format -- 'markdown', 'text' or 'html'
+    """
+    assert format in ('markdown', 'text', 'html')
+    call_ulysses('update-note', locals(), send_access_token=True)
+
+
+def remove_note(id, index):  # @ReservedAssignment
+    """Add a new note attachment to a sheet.
+
+    id -- id of sheet
+    index -- index of note on sheet (starting at 0)
+    """
+    call_ulysses('remove-note', locals(), send_access_token=True)
 
 
 def get_item(id, recursive=False):  # @ReservedAssignment
@@ -123,6 +196,22 @@ def get_item(id, recursive=False):  # @ReservedAssignment
         return Sheet(**item)
     else:
         raise ValueError('Unsupported type: ' + type_)
+
+
+def read_sheet(id, text=False):  # @ReservedAssignment
+    """Return a sheet with more detail than get_item().
+
+    id -- id of sheet(not path or name)
+    text -- return full text of sheet
+    """
+
+    text = 'YES' if text else 'NO'
+    reply = call_ulysses('read-sheet', locals(), send_access_token=True)
+    sheet_dict = json.loads(urllib.unquote(reply['sheet']))
+    assert sheet_dict['type'] == 'sheet'
+    logger.error('xxxx')
+    logger.error('sheet_dict =' + str(sheet_dict))
+    return SheetWithContent(**sheet_dict)
 
 
 def trash(id):  # @ReservedAssignment
@@ -339,8 +428,8 @@ class Sheet(AbstractItem):
         to Ulysses.
         """
 
-        super(Sheet, self).__init__(title, type, identifier,
-                                    hasLifetimeIdentifier)
+        super(Sheet, self).__init__(
+            title, type, identifier, hasLifetimeIdentifier)
         if type != 'sheet':
             raise ValueError('Unexpected type: ' + str(type))
         self.changeToken = changeToken
@@ -356,6 +445,35 @@ class Sheet(AbstractItem):
 
     def __str__(self):
         return unicode(self).encode('utf-8')
+
+
+class SheetWithContent(Sheet):
+    """Represents a Ulysses sheet in more detail than Sheet
+
+    Attributes (as Sheet and in addition):
+
+    text -- The sheets content encoded as Markdown. This is only available if
+            the text parameter was set to True when created with read_sheet()
+    keywords -- list of strings representing keywords
+    notes -- list of strings representing notes in markdown
+
+    """
+    def __init__(self,  title=None, type=None,   # @ReservedAssignment
+                 identifier=None, hasLifetimeIdentifier=None,
+                 titleType=None, creationDate=None, modificationDate=None,
+                 changeToken=None, text=None, keywords=None, notes=None):
+        """Create a Sheet.
+
+        Best called with **sheet_dict, where sheet_dict results from a call
+        to Ulysses.
+        """
+        super(SheetWithContent, self).__init__(
+            title, type, identifier, hasLifetimeIdentifier, titleType,
+            creationDate, modificationDate, changeToken)
+
+        self.text = unicode(text)
+        self.keywords = list(keywords)
+        self.notes = list(notes)
 
 
 def filter_items(items, title, type_='sheet_or_group'):

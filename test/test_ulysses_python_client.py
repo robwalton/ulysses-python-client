@@ -225,6 +225,82 @@ def test_get_quick_look_url__with_sheet(testgroup_id):
     assert os.path.exists(path)
 
 
+def test_read_sheet(testgroup_id):
+    text = '## test read sheet\nfirst line'
+    sht_id = upc.new_sheet(text, testgroup_id)
+
+    sheet = upc.read_sheet(sht_id, text=True)
+
+    assert sheet.title == 'test read sheet'
+    assert sheet.titleType == 'heading2'
+
+    assert sheet.text == text
+    assert sheet.keywords == []
+    assert sheet.notes == []
+
+
+def test_insert(testgroup_id):
+    sht_id = upc.new_sheet('test insert\nline1')
+
+    upc.insert(sht_id, 'line2', newline='prepend')
+
+    sheet = upc.read_sheet(sht_id, text=True)
+
+    assert sheet.title == 'test insert'
+    assert sheet.text == 'test insert\nline1\nline2'
+
+
+def test_attach_keywords(testgroup_id):
+    sht_id = upc.new_sheet('test_attach_keywords', testgroup_id)
+
+    upc.attach_keywords(sht_id, ['keyword1'])
+    upc.attach_keywords(sht_id, ['keyword2', 'keyword3'])
+
+    sheet = upc.read_sheet(sht_id)
+    assert sheet.keywords == ['keyword1', 'keyword2', 'keyword3']
+
+
+def test_remove_keywords(testgroup_id):
+    sht_id = upc.new_sheet('test_attach_keywords', testgroup_id)
+    upc.attach_keywords(sht_id, ['keyword1', 'keyword2', 'keyword3'])
+
+    upc.remove_keywords(sht_id, ['keyword1', 'keyword3'])
+
+    sheet = upc.read_sheet(sht_id)
+    assert sheet.keywords == ['keyword2']
+
+
+def test_attach_note(testgroup_id):
+    sht_id = upc.new_sheet('test_attach_note', testgroup_id)
+
+    upc.attach_note(sht_id, 'note')
+
+    sheet = upc.read_sheet(sht_id)
+    assert sheet.notes == ['note']
+
+
+def test_update_note(testgroup_id):
+    sht_id = upc.new_sheet('test_update_note', testgroup_id)
+    upc.attach_note(sht_id, 'note0')
+    upc.attach_note(sht_id, 'note1')
+
+    upc.update_note(sht_id, 1, 'note1 updated')
+
+    sheet = upc.read_sheet(sht_id)
+    assert sheet.notes == ['note0', 'note1 updated']
+
+
+def test_remove_note(testgroup_id):
+    sht_id = upc.new_sheet('test_remove_note', testgroup_id)
+    upc.attach_note(sht_id, 'note0')
+    upc.attach_note(sht_id, 'note1')
+
+    upc.remove_note(sht_id, 0)
+
+    sheet = upc.read_sheet(sht_id)
+    assert sheet.notes == ['note1']
+
+
 @pytest.mark.skip('visual check')
 def test__open__open_all__open_recent__open_favorites(testgroup_id):
 
