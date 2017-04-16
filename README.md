@@ -7,7 +7,7 @@ Implements Ulysses' [x-callback-url scheme](https://ulyssesapp.com/kb/x-callback
 ## Software compatability
 Requires:
 - macOS
-- [Ulysses](https://ulyssesapp.com)
+- [Ulysses](https://ulyssesapp.com) 2.8
 - python 2.7
 - Uses macOS [xcall](https://github.com/martinfinke/xcall) (included) for x-callback-url support (Thanks Martin Finke!)
 - Needs pytest for testing
