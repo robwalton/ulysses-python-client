@@ -1,8 +1,8 @@
 
-import xcall_ulysses
+from ulysses_client import xcall_ulysses
 import time
 import pytest
-from xcall_ulysses import XCallbackError
+from ulysses_client.xcall_ulysses import XCallbackError
 import urlparse
 
 

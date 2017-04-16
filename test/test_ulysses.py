@@ -14,10 +14,10 @@ top level of the Ulysses library in which to build and remove content.
 """
 
 
-import ulysses_python_client as upc
-import xcall_ulysses
+from ulysses_client import ulysses
+from ulysses_client import xcall_ulysses
 import pytest
-from xcall_ulysses import XCallbackError
+from ulysses_client.xcall_ulysses import XCallbackError
 import logging
 import random
 import string
@@ -48,9 +48,9 @@ def setup_module(module):
 def playground_id():
     """Return id of pre-existing playground group."""
 
-    icloud_grp = upc.get_root_items(recursive=False)[0]
+    icloud_grp = ulysses.get_root_items(recursive=False)[0]
     assert icloud_grp.title == 'iCloud'
-    icloud_grp = upc.get_item(icloud_grp.identifier, True)
+    icloud_grp = ulysses.get_item(icloud_grp.identifier, True)
     return icloud_grp.get_group_by_title(PLAYGROUND_NAME).identifier
 
 
@@ -58,38 +58,38 @@ def playground_id():
 def testgroup_id(playground_id):
     """Return if of group for this test run and destroy on completion"""
 
-    identifier = upc.new_group(randomword(8), playground_id)
+    identifier = ulysses.new_group(randomword(8), playground_id)
     yield identifier
-    upc.trash(identifier)
+    ulysses.trash(identifier)
 
 
 def group(identifier):
-    return upc.get_item(identifier, recursive=True)
+    return ulysses.get_item(identifier, recursive=True)
 
 
 # Test up calls
 
 def test_get_version():
-    assert upc.get_version() == '2'
+    assert ulysses.get_version() == '2'
 
 
 @pytest.mark.skip(reason='re-enable to see a valid token and then put this'
                   ' in MANUALLY_CONFIGURED_TOKEN')
 def test_authorize():
     # Raise exception with token (just to help determine it!
-    raise Exception('authorisation token: ' + upc.authorize())
+    raise Exception('authorisation token: ' + ulysses.authorize())
 
 
 def test_get_root_items__non_recursive():
-    items = upc.get_root_items(recursive=False)
+    items = ulysses.get_root_items(recursive=False)
 
     assert len(items) >= 1
     assert items[0].title == 'iCloud'
-    assert isinstance(items[0], upc.Group)
+    assert isinstance(items[0], ulysses.Group)
 
 
 def test_get_root_items__recursive():
-    groups = upc.get_root_items(recursive=True)
+    groups = ulysses.get_root_items(recursive=True)
     icloud_grp = groups[0]
 
     assert icloud_grp.title == 'iCloud'
@@ -100,7 +100,7 @@ def test_get_root_items_with_wrong_access_token():
     try:
         xcall_ulysses.token_provider.token = 'not_the_right_token'
         with pytest.raises(XCallbackError) as excinfo:
-            upc.get_root_items()
+            ulysses.get_root_items()
         assert 'Access denied. Code = 4' in str(excinfo.value)
     finally:
         xcall_ulysses.token_provider.token = original_token
@@ -110,27 +110,27 @@ def test_get_root_items_with_wrong_access_token():
 def test_get_item_fails():
     identifier = 'x' * 22
     with pytest.raises(XCallbackError):
-        upc.get_item(identifier)
+        ulysses.get_item(identifier)
 
 
 def test_check_playground_exists(playground_id):
-    item = upc.get_item(playground_id, recursive=False)
+    item = ulysses.get_item(playground_id, recursive=False)
     assert item.type == 'group'
     assert item.title == PLAYGROUND_NAME
 
 
 def test_new_group(testgroup_id):
     name = 'test_new_group' + TEST_STRING
-    identifier = upc.new_group(name, testgroup_id)
+    identifier = ulysses.new_group(name, testgroup_id)
 
-    assert upc.get_item(identifier, False).title == name
+    assert ulysses.get_item(identifier, False).title == name
 
 
 def test_trash(testgroup_id):
-    identifier = upc.new_group('test_trash', testgroup_id)
+    identifier = ulysses.new_group('test_trash', testgroup_id)
     group(testgroup_id).get_group_by_title('test_trash')
 
-    upc.trash(identifier)
+    ulysses.trash(identifier)
 
     with pytest.raises(KeyError):
         group(testgroup_id).get_group_by_title('test_trash')
@@ -138,22 +138,22 @@ def test_trash(testgroup_id):
 
 def test_set_group_title(testgroup_id):
     name = 'test_set_group_title'
-    identifier = upc.new_group(name, testgroup_id)
+    identifier = ulysses.new_group(name, testgroup_id)
 
-    upc.set_group_title(identifier, name + TEST_STRING)
+    ulysses.set_group_title(identifier, name + TEST_STRING)
 
-    group = upc.get_item(identifier, False)
+    group = ulysses.get_item(identifier, False)
     assert group.title == name + TEST_STRING
 
 
 def test_set_sheet_title_with(testgroup_id):
     title = 'test-set-sheet-title'
-    identifier = upc.new_sheet(title, testgroup_id)
+    identifier = ulysses.new_sheet(title, testgroup_id)
     new_title = title + TEST_STRING.replace('_', '')
 
-    upc.set_sheet_title(identifier, new_title, 'heading2')
+    ulysses.set_sheet_title(identifier, new_title, 'heading2')
 
-    sheet = upc.get_item(identifier)
+    sheet = ulysses.get_item(identifier)
     assert sheet.title == new_title
     assert sheet.titleType == 'heading2'
 
@@ -161,34 +161,34 @@ def test_set_sheet_title_with(testgroup_id):
 @pytest.mark.skip('Ulysses seems to ignore underscores when setting')
 def test_set_sheet_title_with_underscores(testgroup_id):
     title = 'test-set-sheet-title'
-    identifier = upc.new_sheet(title, testgroup_id)
+    identifier = ulysses.new_sheet(title, testgroup_id)
     new_title = title + TEST_STRING
 
-    upc.set_sheet_title(identifier, new_title, 'heading2')
+    ulysses.set_sheet_title(identifier, new_title, 'heading2')
 
-    sheet = upc.get_item(identifier)
+    sheet = ulysses.get_item(identifier)
     assert sheet.title == new_title
     assert sheet.titleType == 'heading2'
 
 
 def test_move__to_group(testgroup_id):
-    sheetid = upc.new_sheet('test_move__to_group-sheet', testgroup_id)
-    groupid = upc.new_group('test_move__to_group-group', testgroup_id)
+    sheetid = ulysses.new_sheet('test_move__to_group-sheet', testgroup_id)
+    groupid = ulysses.new_group('test_move__to_group-group', testgroup_id)
 
-    upc.move(sheetid, groupid)
+    ulysses.move(sheetid, groupid)
 
     group(groupid).get_sheet_by_title('test_move__to_group-sheet')
 
 
 def test_move__to_index(testgroup_id):
-    group_id = upc.new_group('test_move__to_index-group', testgroup_id)
-    sheet1_id = upc.new_sheet('sheet1', group_id)
-    upc.new_sheet('sheet2', group_id)
+    group_id = ulysses.new_group('test_move__to_index-group', testgroup_id)
+    sheet1_id = ulysses.new_sheet('sheet1', group_id)
+    ulysses.new_sheet('sheet2', group_id)
     group_ = group(group_id)
     assert group_.sheets[0].title == 'sheet2'
     assert group_.sheets[1].title == 'sheet1'
 
-    upc.move(sheet1_id, index=0, silent_mode=True)
+    ulysses.move(sheet1_id, index=0, silent_mode=True)
 
     group_ = group(group_id)
     assert group_.sheets[0].title == 'sheet1'
@@ -196,12 +196,12 @@ def test_move__to_index(testgroup_id):
 
 
 def test_copy__to_index(testgroup_id):
-    group_id = upc.new_group('test_copy__to_index-group', testgroup_id)
-    sheet1_id = upc.new_sheet('sheet0', group_id)
-    upc.new_sheet('sheet2', group_id)
-    upc.new_sheet('sheet1', group_id)
+    group_id = ulysses.new_group('test_copy__to_index-group', testgroup_id)
+    sheet1_id = ulysses.new_sheet('sheet0', group_id)
+    ulysses.new_sheet('sheet2', group_id)
+    ulysses.new_sheet('sheet1', group_id)
 
-    upc.copy(sheet1_id, group_id, 1, silent_mode=True)
+    ulysses.copy(sheet1_id, group_id, 1, silent_mode=True)
 
     group_ = group(group_id)
     assert group_.sheets[0].title == 'sheet1'
@@ -210,18 +210,19 @@ def test_copy__to_index(testgroup_id):
 
 
 def test_get_quick_look_url__with_sheet(testgroup_id):
-    sht_id = upc.new_sheet('test_get_quick_look_url__with_sheet', testgroup_id)
+    sht_id = ulysses.new_sheet(
+        'test_get_quick_look_url__with_sheet', testgroup_id)
 
-    path = upc.get_quick_look_url(sht_id)
+    path = ulysses.get_quick_look_url(sht_id)
 
     assert os.path.exists(path)
 
 
 def test_read_sheet(testgroup_id):
     text = '## test read sheet\nfirst line\n' + TEST_STRING
-    sht_id = upc.new_sheet(text, testgroup_id)
+    sht_id = ulysses.new_sheet(text, testgroup_id)
 
-    sheet = upc.read_sheet(sht_id, text=True)
+    sheet = ulysses.read_sheet(sht_id, text=True)
 
     assert sheet.title == 'test read sheet'
     assert sheet.titleType == 'heading2'
@@ -232,81 +233,81 @@ def test_read_sheet(testgroup_id):
 
 
 def test_insert(testgroup_id):
-    sht_id = upc.new_sheet('test insert\nline1')
+    sht_id = ulysses.new_sheet('test insert\nline1')
 
-    upc.insert(sht_id, 'line2' + TEST_STRING, newline='prepend')
+    ulysses.insert(sht_id, 'line2' + TEST_STRING, newline='prepend')
 
-    sheet = upc.read_sheet(sht_id, text=True)
+    sheet = ulysses.read_sheet(sht_id, text=True)
 
     assert sheet.title == 'test insert'
     assert sheet.text == 'test insert\nline1\nline2' + TEST_STRING
 
 
 def test_attach_keywords(testgroup_id):
-    sht_id = upc.new_sheet('test_attach_keywords', testgroup_id)
+    sht_id = ulysses.new_sheet('test_attach_keywords', testgroup_id)
 
-    upc.attach_keywords(sht_id, ['keyword1'])
-    upc.attach_keywords(sht_id, ['keyword2', 'keyword3' + TEST_STRING])
+    ulysses.attach_keywords(sht_id, ['keyword1'])
+    ulysses.attach_keywords(sht_id, ['keyword2', 'keyword3' + TEST_STRING])
 
-    sheet = upc.read_sheet(sht_id)
+    sheet = ulysses.read_sheet(sht_id)
     assert sheet.keywords == ['keyword1', 'keyword2', 'keyword3' + TEST_STRING]
 
 
 def test_remove_keywords(testgroup_id):
-    sht_id = upc.new_sheet('test_attach_keywords', testgroup_id)
-    upc.attach_keywords(sht_id, ['keyword1', 'keyword2', 'keyword3'])
+    sht_id = ulysses.new_sheet('test_attach_keywords', testgroup_id)
+    ulysses.attach_keywords(sht_id, ['keyword1', 'keyword2', 'keyword3'])
 
-    upc.remove_keywords(sht_id, ['keyword1', 'keyword3'])
+    ulysses.remove_keywords(sht_id, ['keyword1', 'keyword3'])
 
-    sheet = upc.read_sheet(sht_id)
+    sheet = ulysses.read_sheet(sht_id)
     assert sheet.keywords == ['keyword2']
 
 
 def test_attach_note(testgroup_id):
-    sht_id = upc.new_sheet('test_attach_note', testgroup_id)
+    sht_id = ulysses.new_sheet('test_attach_note', testgroup_id)
 
-    upc.attach_note(sht_id, TEST_STRING)
+    ulysses.attach_note(sht_id, TEST_STRING)
 
-    sheet = upc.read_sheet(sht_id)
+    sheet = ulysses.read_sheet(sht_id)
     assert sheet.notes == [TEST_STRING]
 
 
 def test_update_note(testgroup_id):
-    sht_id = upc.new_sheet('test_update_note', testgroup_id)
-    upc.attach_note(sht_id, 'note0')
-    upc.attach_note(sht_id, 'note1')
+    sht_id = ulysses.new_sheet('test_update_note', testgroup_id)
+    ulysses.attach_note(sht_id, 'note0')
+    ulysses.attach_note(sht_id, 'note1')
 
-    upc.update_note(sht_id, 1, 'note1' + TEST_STRING)
+    ulysses.update_note(sht_id, 1, 'note1' + TEST_STRING)
 
-    sheet = upc.read_sheet(sht_id)
+    sheet = ulysses.read_sheet(sht_id)
     assert sheet.notes == ['note0', 'note1' + TEST_STRING]
 
 
 def test_remove_note(testgroup_id):
-    sht_id = upc.new_sheet('test_remove_note', testgroup_id)
-    upc.attach_note(sht_id, 'note0')
-    upc.attach_note(sht_id, 'note1')
+    sht_id = ulysses.new_sheet('test_remove_note', testgroup_id)
+    ulysses.attach_note(sht_id, 'note0')
+    ulysses.attach_note(sht_id, 'note1')
 
-    upc.remove_note(sht_id, 0)
+    ulysses.remove_note(sht_id, 0)
 
-    sheet = upc.read_sheet(sht_id)
+    sheet = ulysses.read_sheet(sht_id)
     assert sheet.notes == ['note1']
 
 
 @pytest.mark.skip('visual check')
 def test__open__open_all__open_recent__open_favorites(testgroup_id):
 
-    sheet_id = upc.new_sheet('test_open\n\nand some text', testgroup_id)
-    upc.open(sheet_id)
+    sheet_id = ulysses.new_sheet('test_open\n\nand some text', testgroup_id)
+    ulysses.open(sheet_id)
     time.sleep(5)
 
-    upc.open_all()
+    ulysses.open_all()
     time.sleep(5)
 
-    upc.open_recent()
+    ulysses.open_recent()
     time.sleep(5)
 
-    upc.open_favorites()
+    ulysses.open_favorites()
     time.sleep(5)
 
 
@@ -322,7 +323,7 @@ class TestItemConstructors():
             'title': 'upcsheet',
             'titleType': None,
             'type': 'sheet'}
-        sheet = upc.Sheet(**d)
+        sheet = ulysses.Sheet(**d)
         assert sheet.title == 'upcsheet'
         exp = "Sheet(title='upcsheet', identifier='ENYa9PBxg3Vj7ws4MO_SWA')"
         assert str(sheet) == exp
@@ -345,9 +346,9 @@ class TestItemConstructors():
                         'title': 'sheet',
                         'titleType': None,
                         'type': 'sheet'}]}
-        group = upc.Group(**d)
+        group = ulysses.Group(**d)
         assert group.title == 'iCloud'
-        assert group.sheets == [upc.Sheet(**d['sheets'][0])]
+        assert group.sheets == [ulysses.Sheet(**d['sheets'][0])]
         assert group.containers is None
         expected = ("Group(title='iCloud', n_sheets=1, n_containers=?unknown?,"
                     " identifier='4A14NiU-iGaw06m2Y2DNwA')")
@@ -403,12 +404,12 @@ class TestItemConstructors():
             'title': 'upcgroup',
             'type': 'group',
             }
-        upcgroup = upc.Group(**d)
-        upcsheet = upc.Sheet(**d['sheets'][0])
-        group1 = upc.Group(**d['containers'][0])
-        group2 = upc.Group(**d['containers'][1])
-        sheet1a = upc.Sheet(**d['containers'][0]['sheets'][0])
-        sheet1b = upc.Sheet(**d['containers'][0]['sheets'][1])
+        upcgroup = ulysses.Group(**d)
+        upcsheet = ulysses.Sheet(**d['sheets'][0])
+        group1 = ulysses.Group(**d['containers'][0])
+        group2 = ulysses.Group(**d['containers'][1])
+        sheet1a = ulysses.Sheet(**d['containers'][0]['sheets'][0])
+        sheet1b = ulysses.Sheet(**d['containers'][0]['sheets'][1])
 
         assert upcgroup.title == 'upcgroup'
         assert upcgroup.sheets == [upcsheet]

@@ -68,11 +68,9 @@ def call_ulysses(action, params={}, send_access_token=False,
         params['silent-mode'] = 'YES'
 
     cmd = build_url(action, params)
-    logger.debug('<<<')
-    logger.debug('   Sending: ' + cmd)
+    logger.debug('--> ' + cmd)
     result = xcall(cmd)
-    logger.debug('   Received: ' + str(result))
-    logger.debug('>>>')
+    logger.debug('<-- ' + str(result) + '\n')
     return result
 
 

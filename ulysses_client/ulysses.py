@@ -10,7 +10,7 @@ and Sheets
 """
 
 
-from xcall_ulysses import call_ulysses, call
+from ulysses_client.xcall_ulysses import call_ulysses, call
 import json
 import logging
 import urllib
@@ -87,8 +87,6 @@ def read_sheet(id, text=False):  # @ReservedAssignment
     reply = call_ulysses('read-sheet', locals(), send_access_token=True)
     sheet_dict = json.loads(urllib.unquote(reply['sheet']))
     assert sheet_dict['type'] == 'sheet'
-    logger.error('xxxx')
-    logger.error('sheet_dict =' + str(sheet_dict))
     return SheetWithContent(**sheet_dict)
 
 
@@ -149,7 +147,6 @@ def set_sheet_title(sheet, title, type):  # @ReservedAssignment
     """
     assert type in ('heading1', 'heading2', 'heading3', 'heading4', 'heading5',
                     'heading6', 'comment', 'filename')
-#     title = urllib.quote(title.encode('utf8'))  # seems not tp be unencoded
     call_ulysses('set-sheet-title', locals(), send_access_token=True)
 
 
