@@ -34,7 +34,8 @@ MANUALLY_CONFIGURED_TOKEN = 'c6e4ef1a29e44e62acdcee4e5eabc423'
 
 PLAYGROUND_NAME = 'ulysses-python-client-playground'
 
-TESTID = 'v_u1RvMlGjJHqofzWdvCNw'
+
+TEST_STRING = ur""" -- () ? & ' " ‘quoted text’ _x_y_z_ a://b.c/d?e=f&g=h / + ' " 'quoted text'"""
 
 
 # pyunit fixture
@@ -64,27 +65,6 @@ def testgroup_id(playground_id):
 
 def group(identifier):
     return upc.get_item(identifier, recursive=True)
-
-
-@pytest.fixture(scope='module')
-def treename():
-    return 'tree-' + randomword(8)
-
-
-@pytest.fixture(scope='module')
-def treegroup(treename):
-    treegroup_id = playground_group().get_group_by_title(treename).identifier
-    return upc.get_item(treegroup_id, recursive=True)
-
-
-@pytest.fixture(scope='class')
-def random_name():
-    return randomword(8)
-
-
-@pytest.fixture
-def playground_group():
-    return upc.get_item(playground_id(), recursive=True)
 
 
 # Test up calls

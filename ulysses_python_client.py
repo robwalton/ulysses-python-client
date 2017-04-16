@@ -56,6 +56,53 @@ def get_root_items(recursive=True):
     return [Group(**item) for item in item_list]
 
 
+def get_item(id, recursive=False):  # @ReservedAssignment
+    """Return Group or Sheet instance.
+
+    identifier -- id of sheet (not name or path)
+    recursive -- return sub-groups of group if True
+    """
+    assert isID(id)
+    recursive = 'YES' if recursive else 'NO'
+    reply = call_ulysses('get-item', locals(), send_access_token=True)
+    item = json.loads(urllib.unquote(reply['item']))
+
+    type_ = item['type']
+    if type_ == 'group':
+        return Group(**item)
+    elif type_ == 'sheet':
+        return Sheet(**item)
+    else:
+        raise ValueError('Unsupported type: ' + type_)
+
+
+def read_sheet(id, text=False):  # @ReservedAssignment
+    """Return a sheet with more detail than get_item().
+
+    id -- id of sheet(not path or name)
+    text -- return full text of sheet
+    """
+
+    text = 'YES' if text else 'NO'
+    reply = call_ulysses('read-sheet', locals(), send_access_token=True)
+    sheet_dict = json.loads(urllib.unquote(reply['sheet']))
+    assert sheet_dict['type'] == 'sheet'
+    logger.error('xxxx')
+    logger.error('sheet_dict =' + str(sheet_dict))
+    return SheetWithContent(**sheet_dict)
+
+
+def get_quick_look_url(id):  # @ReservedAssignment
+    """Get the QuickLook URL for a sheet, i.e. location on the file system.
+
+    id -- id of sheet(not path or name)
+    """
+    assert isID(id)
+    url = call_ulysses('get-quick-look-url', locals())['url']
+    uri = urllib.unquote(url).replace('\\', '')
+    return uri.replace('file://', '')
+
+
 def new_group(name, parent=None, index=None):
     """Create new group and return id.
 
@@ -76,21 +123,6 @@ def set_group_title(group, title):
     call_ulysses('set-group-title', locals(), send_access_token=True)
 
 
-def set_sheet_title(sheet, title, type):  # @ReservedAssignment
-    """Change first paragraph of sheet.
-
-    sheet -- Identifier of sheet to chang
-    title -- New title string. Will be URL-encoded
-    type -- The markup type of the title. Will be 'heading1'...'heading6',
-            'comment' or 'filename' (on external folders with title
-            e.g '@: My Filename'
-    """
-    assert type in ('heading1', 'heading2', 'heading3', 'heading4', 'heading5',
-                    'heading6', 'comment', 'filename')
-#     title = urllib.quote(title.encode('utf8'))  # seems not tp be unencoded
-    call_ulysses('set-sheet-title', locals(), send_access_token=True)
-
-
 def new_sheet(text, group=None, format='markdown',  # @ReservedAssignment
               index=None):
     """Create new sheet and return id.
@@ -106,6 +138,21 @@ def new_sheet(text, group=None, format='markdown',  # @ReservedAssignment
     return identifier
 
 
+def set_sheet_title(sheet, title, type):  # @ReservedAssignment
+    """Change first paragraph of sheet.
+
+    sheet -- Identifier of sheet to chang
+    title -- New title string. Will be URL-encoded
+    type -- The markup type of the title. Will be 'heading1'...'heading6',
+            'comment' or 'filename' (on external folders with title
+            e.g '@: My Filename'
+    """
+    assert type in ('heading1', 'heading2', 'heading3', 'heading4', 'heading5',
+                    'heading6', 'comment', 'filename')
+#     title = urllib.quote(title.encode('utf8'))  # seems not tp be unencoded
+    call_ulysses('set-sheet-title', locals(), send_access_token=True)
+
+
 def insert(id, text, format='markdown', position='end',  # @ReservedAssignment
            newline=None):
     """Insert or append text to a sheet.
@@ -118,7 +165,7 @@ def insert(id, text, format='markdown', position='end',  # @ReservedAssignment
 
     """
     assert isID(id)
-    assert format in ('markdown', 'text', 'html')
+    assert format in ('markdown', 'text', 'html', )
     assert position in ('begin', 'end')
     assert newline in ('prepend', 'append', 'enclose', None)
     call_ulysses('insert', locals(), send_access_token=True)
@@ -178,42 +225,6 @@ def remove_note(id, index):  # @ReservedAssignment
     call_ulysses('remove-note', locals(), send_access_token=True)
 
 
-def get_item(id, recursive=False):  # @ReservedAssignment
-    """Return Group or Sheet instance.
-
-    identifier -- id of sheet (not name or path)
-    recursive -- return sub-groups of group if True
-    """
-    assert isID(id)
-    recursive = 'YES' if recursive else 'NO'
-    reply = call_ulysses('get-item', locals(), send_access_token=True)
-    item = json.loads(urllib.unquote(reply['item']))
-
-    type_ = item['type']
-    if type_ == 'group':
-        return Group(**item)
-    elif type_ == 'sheet':
-        return Sheet(**item)
-    else:
-        raise ValueError('Unsupported type: ' + type_)
-
-
-def read_sheet(id, text=False):  # @ReservedAssignment
-    """Return a sheet with more detail than get_item().
-
-    id -- id of sheet(not path or name)
-    text -- return full text of sheet
-    """
-
-    text = 'YES' if text else 'NO'
-    reply = call_ulysses('read-sheet', locals(), send_access_token=True)
-    sheet_dict = json.loads(urllib.unquote(reply['sheet']))
-    assert sheet_dict['type'] == 'sheet'
-    logger.error('xxxx')
-    logger.error('sheet_dict =' + str(sheet_dict))
-    return SheetWithContent(**sheet_dict)
-
-
 def trash(id):  # @ReservedAssignment
     """Move item to trash.
 
@@ -255,17 +266,6 @@ def copy(id, targetGroup=None, index=None,  # @ReservedAssignment
     del params['silent_mode']
     call_ulysses(
         'copy', params, send_access_token=True, silent_mode=silent_mode)
-
-
-def get_quick_look_url(id):  # @ReservedAssignment
-    """Get the QuickLook URL for a sheet, i.e. location on the file system.
-
-    id -- id of sheet(not path or name)
-    """
-    assert isID(id)
-    url = call_ulysses('get-quick-look-url', locals())['url']
-    uri = urllib.unquote(url).replace('\\', '')
-    return uri.replace('file://', '')
 
 
 def open(id):  # @ReservedAssignment
