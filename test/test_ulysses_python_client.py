@@ -1,5 +1,5 @@
 
-
+# -*- coding: utf-8 -*-
 """
 These tests assume Ulysses has an icloud library entry.
 
@@ -35,16 +35,6 @@ MANUALLY_CONFIGURED_TOKEN = 'c6e4ef1a29e44e62acdcee4e5eabc423'
 PLAYGROUND_NAME = 'ulysses-python-client-playground'
 
 TESTID = 'v_u1RvMlGjJHqofzWdvCNw'
-
-
-###
-
-# def test_main():
-#     test_sheet = upc.get_item(TESTID, recursive=False)
-#     print test_sheet
-
-###
-
 
 
 # pyunit fixture
@@ -176,18 +166,17 @@ def test_set_group_title(testgroup_id):
     assert group.title == name + '_modified'
 
 
-def test_set_sheet_title(testgroup_id):
-    identifier = upc.new_sheet('test_set_sheet_title', testgroup_id)
-    new_title = "test_set_sheet_title abc\1/2'3@"
+def test_set_sheet_title_with_unicode(testgroup_id):
+    title = 'test-set-sheet-title'
+    identifier = upc.new_sheet(title, testgroup_id)
+    new_title = title + u""" -- abcd () / ? & xyz ' " ‘quoted text’ - end"""
     # shows up as # test_set_sheet_title%20abc%01/2%273%40
 
-    upc.set_sheet_title(identifier, new_title, 'heading1')
-    upc.open(identifier)
-    time.sleep(10)
+    upc.set_sheet_title(identifier, new_title, 'heading2')
 
     sheet = upc.get_item(identifier)
     assert sheet.title == new_title
-    assert sheet.type == 'heading1'
+    assert sheet.titleType == 'heading2'
 
 
 def test_move__to_group(testgroup_id):

@@ -87,7 +87,7 @@ def set_sheet_title(sheet, title, type):  # @ReservedAssignment
     """
     assert type in ('heading1', 'heading2', 'heading3', 'heading4', 'heading5',
                     'heading6', 'comment', 'filename')
-    # title = urllib.quote(title)  # seems not tp be unencoded
+#     title = urllib.quote(title.encode('utf8'))  # seems not tp be unencoded
     call_ulysses('set-sheet-title', locals(), send_access_token=True)
 
 
@@ -292,7 +292,7 @@ class Group(AbstractItem):
                 return sheet
         raise KeyError("No sheet called '%s' found" % title)
 
-    def __str__(self):
+    def __unicode__(self):
         title = self.title
         identifier = self.identifier
         n_sheets = len(self.sheets)
@@ -300,8 +300,11 @@ class Group(AbstractItem):
             n_containers = len(self.containers)
         else:
             n_containers = '?unknown?'
-        return ("Group(title='%(title)s', n_sheets=%(n_sheets)s, n_containers="
-                "%(n_containers)s, identifier='%(identifier)s')" % locals())
+        return (u"Group(title='%(title)s', n_sheets=%(n_sheets)s, n_containers"
+                u"=%(n_containers)s, identifier='%(identifier)s')" % locals())
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
 
 
 class Sheet(AbstractItem):
@@ -345,11 +348,14 @@ class Sheet(AbstractItem):
         self.modificationDate = modificationDate
         self.titleType = titleType
 
-    def __str__(self):
+    def __unicode__(self):
         title = self.title
         identifier = self.identifier
-        return ("Sheet(title='%(title)s', identifier='%(identifier)s')"
+        return (u"Sheet(title='%(title)s', identifier='%(identifier)s')"
                 % locals())
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
 
 
 def filter_items(items, title, type_='sheet_or_group'):
@@ -365,5 +371,3 @@ def filter_items(items, title, type_='sheet_or_group'):
                 (type_ == 'sheet_or_group' or item.type == type_)):
             filtered_items.append(item)
     return filtered_items
-
-

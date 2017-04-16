@@ -18,7 +18,6 @@ import logging
 from AppKit import NSWorkspace  # @UnresolvedImport
 import Foundation as fn
 
-from AppKit import NSWorkspaceLaunchWithoutActivation  # @UnresolvedImport
 import json
 
 
@@ -90,11 +89,10 @@ def xcall(url):
     p = Popen(['bin/xcall.app/Contents/MacOS/xcall', '-url', url],
               stdout=PIPE, stderr=PIPE)
     stdout, stderr = p.communicate()
+
     assert (stdout == '') or (stderr == '')
     if stdout:
-        reply = json.loads(urllib.unquote(stdout).decode('utf8'))
-        return reply
-        return eval(reply)
+        return json.loads(urllib.unquote(stdout).decode('utf8'))
     elif stderr:
         d = eval(stderr)
         raise XCallbackError(d['errorMessage'] + ' Code = ' + d['errorCode'])
@@ -123,6 +121,10 @@ def build_url(action, action_parameter_dict):
     action_parameter_dict -- parameters for given action
     """
     url = 'ulysses://x-callback-url/%s' % action
+
     if action_parameter_dict:
-        url = url + '?' + urllib.urlencode(action_parameter_dict)
+        par_list = []
+        for k, v in action_parameter_dict.iteritems():
+            par_list.append(k + '=' + urllib.quote(unicode(v).encode('utf8')))
+        url = url + '?' + '&'.join(par_list)
     return url
