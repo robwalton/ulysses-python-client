@@ -35,7 +35,7 @@ MANUALLY_CONFIGURED_TOKEN = 'c6e4ef1a29e44e62acdcee4e5eabc423'
 PLAYGROUND_NAME = 'ulysses-python-client-playground'
 
 
-TEST_STRING = ur""" -- () ? & ' " ‘quoted text’ _x_y_z_ a://b.c/d?e=f&g=h / + ' " 'quoted text'"""
+TEST_STRING = ur""" -- () ? & ' " ‘quoted text’ _x_y_z_ a://b.c/d?e=f&g=h"""
 
 
 # pyunit fixture
@@ -120,7 +120,7 @@ def test_check_playground_exists(playground_id):
 
 
 def test_new_group(testgroup_id):
-    name = 'test_new_group'
+    name = 'test_new_group' + TEST_STRING
     identifier = upc.new_group(name, testgroup_id)
 
     assert upc.get_item(identifier, False).title == name
@@ -140,17 +140,29 @@ def test_set_group_title(testgroup_id):
     name = 'test_set_group_title'
     identifier = upc.new_group(name, testgroup_id)
 
-    upc.set_group_title(identifier, name + '_modified')
+    upc.set_group_title(identifier, name + TEST_STRING)
 
     group = upc.get_item(identifier, False)
-    assert group.title == name + '_modified'
+    assert group.title == name + TEST_STRING
 
 
-def test_set_sheet_title_with_unicode(testgroup_id):
+def test_set_sheet_title_with(testgroup_id):
     title = 'test-set-sheet-title'
     identifier = upc.new_sheet(title, testgroup_id)
-    new_title = title + u""" -- abcd () / ? & xyz ' " ‘quoted text’ - end"""
-    # shows up as # test_set_sheet_title%20abc%01/2%273%40
+    new_title = title + TEST_STRING.replace('_', '')
+
+    upc.set_sheet_title(identifier, new_title, 'heading2')
+
+    sheet = upc.get_item(identifier)
+    assert sheet.title == new_title
+    assert sheet.titleType == 'heading2'
+
+
+@pytest.mark.skip('Ulysses seems to ignore underscores when setting')
+def test_set_sheet_title_with_underscores(testgroup_id):
+    title = 'test-set-sheet-title'
+    identifier = upc.new_sheet(title, testgroup_id)
+    new_title = title + TEST_STRING
 
     upc.set_sheet_title(identifier, new_title, 'heading2')
 
@@ -206,7 +218,7 @@ def test_get_quick_look_url__with_sheet(testgroup_id):
 
 
 def test_read_sheet(testgroup_id):
-    text = '## test read sheet\nfirst line'
+    text = '## test read sheet\nfirst line\n' + TEST_STRING
     sht_id = upc.new_sheet(text, testgroup_id)
 
     sheet = upc.read_sheet(sht_id, text=True)
@@ -222,22 +234,22 @@ def test_read_sheet(testgroup_id):
 def test_insert(testgroup_id):
     sht_id = upc.new_sheet('test insert\nline1')
 
-    upc.insert(sht_id, 'line2', newline='prepend')
+    upc.insert(sht_id, 'line2' + TEST_STRING, newline='prepend')
 
     sheet = upc.read_sheet(sht_id, text=True)
 
     assert sheet.title == 'test insert'
-    assert sheet.text == 'test insert\nline1\nline2'
+    assert sheet.text == 'test insert\nline1\nline2' + TEST_STRING
 
 
 def test_attach_keywords(testgroup_id):
     sht_id = upc.new_sheet('test_attach_keywords', testgroup_id)
 
     upc.attach_keywords(sht_id, ['keyword1'])
-    upc.attach_keywords(sht_id, ['keyword2', 'keyword3'])
+    upc.attach_keywords(sht_id, ['keyword2', 'keyword3' + TEST_STRING])
 
     sheet = upc.read_sheet(sht_id)
-    assert sheet.keywords == ['keyword1', 'keyword2', 'keyword3']
+    assert sheet.keywords == ['keyword1', 'keyword2', 'keyword3' + TEST_STRING]
 
 
 def test_remove_keywords(testgroup_id):
@@ -253,10 +265,10 @@ def test_remove_keywords(testgroup_id):
 def test_attach_note(testgroup_id):
     sht_id = upc.new_sheet('test_attach_note', testgroup_id)
 
-    upc.attach_note(sht_id, 'note')
+    upc.attach_note(sht_id, TEST_STRING)
 
     sheet = upc.read_sheet(sht_id)
-    assert sheet.notes == ['note']
+    assert sheet.notes == [TEST_STRING]
 
 
 def test_update_note(testgroup_id):
@@ -264,10 +276,10 @@ def test_update_note(testgroup_id):
     upc.attach_note(sht_id, 'note0')
     upc.attach_note(sht_id, 'note1')
 
-    upc.update_note(sht_id, 1, 'note1 updated')
+    upc.update_note(sht_id, 1, 'note1' + TEST_STRING)
 
     sheet = upc.read_sheet(sht_id)
-    assert sheet.notes == ['note0', 'note1 updated']
+    assert sheet.notes == ['note0', 'note1' + TEST_STRING]
 
 
 def test_remove_note(testgroup_id):
