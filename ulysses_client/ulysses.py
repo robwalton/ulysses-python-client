@@ -10,7 +10,10 @@ and Sheets
 """
 
 
+import ulysses_client.xcall_ulysses  # @UnusedImport
 from ulysses_client.xcall_ulysses import call_ulysses, call
+
+
 import json
 import logging
 import urllib
@@ -20,6 +23,11 @@ logging.basicConfig(filename='ulysses-python-client.log',
                     format='%(asctime)s %(message)s',
                     level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+
+def set_access_token(token):
+    """Set access token required for many Ulysses calls."""
+    ulysses_client.xcall_ulysses.token_provider.token = token
 
 
 def isID(value):
