@@ -13,7 +13,7 @@ These tests assume Ulysses has an icloud library entry.
 
 
 The MANUALLY_CONFIGURED_TOKEN setting in this module must be configured with
-a valid key. To find this, re-nable the test_authorize() test below and
+a valid key. To find this, re-nable the test_authorize() tests below and
 look for the key in the Exception it throws (after Ulysses has popped up
 a dialogue asking if the app should be authorised.)
 
@@ -64,7 +64,7 @@ def playground_id():
 
 @pytest.fixture(scope='module')
 def testgroup_id(playground_id):
-    """Return if of group for this test run and destroy on completion"""
+    """Return if of group for this tests run and destroy on completion"""
 
     identifier = ulysses.new_group(randomword(8), playground_id)
     yield identifier
@@ -155,7 +155,7 @@ def test_set_group_title(testgroup_id):
 
 
 def test_set_sheet_title_with(testgroup_id):
-    title = 'test-set-sheet-title'
+    title = 'tests-set-sheet-title'
     identifier = ulysses.new_sheet(title, testgroup_id)
     new_title = title + TEST_STRING.replace('_', '')
 
@@ -168,7 +168,7 @@ def test_set_sheet_title_with(testgroup_id):
 
 @pytest.mark.skip('Ulysses seems to ignore underscores when setting')
 def test_set_sheet_title_with_underscores(testgroup_id):
-    title = 'test-set-sheet-title'
+    title = 'tests-set-sheet-title'
     identifier = ulysses.new_sheet(title, testgroup_id)
     new_title = title + TEST_STRING
 
@@ -227,12 +227,12 @@ def test_get_quick_look_url__with_sheet(testgroup_id):
 
 
 def test_read_sheet(testgroup_id):
-    text = '## test read sheet\nfirst line\n' + TEST_STRING
+    text = '## tests read sheet\nfirst line\n' + TEST_STRING
     sht_id = ulysses.new_sheet(text, testgroup_id)
 
     sheet = ulysses.read_sheet(sht_id, text=True)
 
-    assert sheet.title == 'test read sheet'
+    assert sheet.title == 'tests read sheet'
     assert sheet.titleType == 'heading2'
 
     assert sheet.text == text
@@ -241,14 +241,14 @@ def test_read_sheet(testgroup_id):
 
 
 def test_insert(testgroup_id):
-    sht_id = ulysses.new_sheet('test insert\nline1')
+    sht_id = ulysses.new_sheet('tests insert\nline1')
 
     ulysses.insert(sht_id, 'line2' + TEST_STRING, newline='prepend')
 
     sheet = ulysses.read_sheet(sht_id, text=True)
 
-    assert sheet.title == 'test insert'
-    assert sheet.text == 'test insert\nline1\nline2' + TEST_STRING
+    assert sheet.title == 'tests insert'
+    assert sheet.text == 'tests insert\nline1\nline2' + TEST_STRING
 
 
 def test_attach_keywords(testgroup_id):

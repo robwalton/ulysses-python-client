@@ -27,7 +27,7 @@ class TestXCallApp:
             xcall.xcall('ulysses://x-callback-url/not-a-valid-action')
         assert 'Invalid Action Code = 100' in str(excinfo.value)
 
-    # @pytest.mark.skip(reason="speed test takes quite long")
+    # @pytest.mark.skip(reason="speed tests takes quite long")
     def test_speed_or_urlcall(self):
         t_start = time.time()
         # Run once to ensure ulysses is open
