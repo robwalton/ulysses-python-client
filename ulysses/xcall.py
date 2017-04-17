@@ -21,6 +21,11 @@ import os
 import json
 
 
+ROOT_PATH = '/'.join(
+    os.path.dirname(os.path.abspath(__file__)).split('/')[:-1])
+XCALL_PATH = os.path.join(ROOT_PATH) + '/bin/xcall.app/Contents/MacOS/xcall'
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -84,7 +89,7 @@ def xcall(url):
     May raise XCallbackError with error message and code from Ulysses.
     """
     from subprocess import Popen, PIPE
-    p = Popen(['/bin/xcall.app/Contents/MacOS/xcall', '-url', url],
+    p = Popen([XCALL_PATH, '-url', url],
               stdout=PIPE, stderr=PIPE)
     stdout, stderr = p.communicate()
 
