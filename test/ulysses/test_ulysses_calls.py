@@ -1,5 +1,13 @@
+# encoding: utf-8
+#
+# Copyright (c) 2016 Rob Walton <dhttps://github.com/robwalton>
+#
+# MIT Licence. See http://opensource.org/licenses/MIT
+#
+# Created on 2017-04-17
+#
 
-# -*- coding: utf-8 -*-
+
 """
 These tests assume Ulysses has an icloud library entry.
 

@@ -65,6 +65,11 @@ YHlYv7PlYgtm626haxAF4A -    Project:
 - [x]  open-all, open-recent, open-favorites
 - [x]  authorize
 
+
+## Licensing & thanks
+
+The code and the documentation are released under the MIT and Creative Commons Attribution-NonCommercial licences respectively. See LICENCE.txt for details.
+
 ## TODO
 
 - Add links up to parent groups
@@ -73,7 +78,6 @@ YHlYv7PlYgtm626haxAF4A -    Project:
   - add tox
   - create setup.py
   - document testing
-  - add license
 - implement attach-image call
 - Do something useful with this
   

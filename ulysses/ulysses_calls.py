@@ -1,3 +1,12 @@
+# encoding: utf-8
+#
+# Copyright (c) 2016 Rob Walton <dhttps://github.com/robwalton>
+#
+# MIT Licence. See http://opensource.org/licenses/MIT
+#
+# Created on 2017-04-17
+#
+
 """Ulysses client.
 
 Provides a 1:1 mapping to Ulysses x-callback-url APi defined at:
