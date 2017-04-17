@@ -9,14 +9,21 @@ and Sheets
 
 """
 
-
-import ulysses_client.xcall_ulysses  # @UnusedImport
-from ulysses_client.xcall_ulysses import call_ulysses, call
+import ulysses.xcall  # @UnusedImport
+from ulysses.xcall import call_ulysses, call
 
 
 import json
 import logging
 import urllib
+
+
+__all__ = ['attach_keywords', 'attach_note', 'authorize', 'call', 'copy',
+           'get_item', 'get_quick_look_url', 'get_root_items', 'get_version',
+           'insert', 'move', 'new_group', 'new_sheet', 'open', 'open_all',
+           'open_favorites', 'open_recent', 'read_sheet', 'remove_keywords',
+           'remove_note', 'set_access_token', 'set_group_title',
+           'set_sheet_title', 'trash', 'update_note']
 
 
 logging.basicConfig(filename='ulysses-python-client.log',
@@ -27,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 def set_access_token(token):
     """Set access token required for many Ulysses calls."""
-    ulysses_client.xcall_ulysses.token_provider.token = token
+    ulysses.xcall.token_provider.token = token
 
 
 def isID(value):
@@ -479,31 +486,3 @@ class SheetWithContent(Sheet):
         self.text = unicode(text)
         self.keywords = list(keywords)
         self.notes = list(notes)
-
-
-def filter_items(items, title, type_='sheet_or_group'):
-    """Filter out items.
-
-    items -- a list of Sheets and/or Groups
-    title -- title to match
-    type_ -- type to match 'sheet', 'group' or 'sheet_or_group'
-    """
-    filtered_items = []
-    for item in items:
-        if (item.title == title and
-                (type_ == 'sheet_or_group' or item.type == type_)):
-            filtered_items.append(item)
-    return filtered_items
-
-
-def treeview(group, indent=0):
-    """"Recursively group structure returning a list of printable lines."""
-    lines = []
-    lines.append(
-        group.identifier + ' - ' + '   ' * indent + group.title + ':')
-    for sheet in group.sheets:
-        lines.append(
-            sheet.identifier + ' - ' + '   ' * (indent + 1) + sheet.title)
-    for sub_group in group.containers:
-        lines.extend(treeview(sub_group, indent + 1))
-    return lines

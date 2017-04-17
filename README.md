@@ -22,15 +22,23 @@ Cloning into 'ulysses-python-client'...
 ## Try it out
 ```python
 
->>> from ulysses_client import ulysses
+>>> import ulysses
 >>> ulysses.get_version()
 u'2'
 >>> token = ulysses.authorize()
 >>> ulysses.set_access_token(token)
+
 >>> library = ulysses.get_root_items(recursive=True)
 >>> print library[0]
 Group(title='iCloud', n_sheets=0, n_containers=4, identifier='4A14NiU-iGaw06m2Y2DNwA')
+
 >>> print '\n'.join(ulysses.treeview(library[0]))
+4A14NiU-iGaw06m2Y2DNwA - iCloud:
+hZ7IX2jqKbVmPGlYUXkZjQ -    Inbox:
+aFV99jXk9_AHHqZJ6znb8w -       test
+d5TuSlVXQwZnIWMN0DusKQ -    ulysses-python-client-playground:
+dULx6YXeWVqCZzrpsH7-3A -       test sheet
+YHlYv7PlYgtm626haxAF4A -    Project:
 ...
 ```
 ## API calls implemented

@@ -17,7 +17,7 @@ import urllib
 import logging
 from AppKit import NSWorkspace  # @UnresolvedImport
 import Foundation as fn
-
+import os
 import json
 
 
@@ -84,7 +84,7 @@ def xcall(url):
     May raise XCallbackError with error message and code from Ulysses.
     """
     from subprocess import Popen, PIPE
-    p = Popen(['bin/xcall.app/Contents/MacOS/xcall', '-url', url],
+    p = Popen(['/bin/xcall.app/Contents/MacOS/xcall', '-url', url],
               stdout=PIPE, stderr=PIPE)
     stdout, stderr = p.communicate()
 

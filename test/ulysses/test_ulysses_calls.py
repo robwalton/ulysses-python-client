@@ -14,10 +14,10 @@ top level of the Ulysses library in which to build and remove content.
 """
 
 
-from ulysses_client import ulysses
-from ulysses_client import xcall_ulysses
+from ulysses import ulysses_calls as ulysses
+from ulysses import xcall
 import pytest
-from ulysses_client.xcall_ulysses import XCallbackError
+from ulysses.xcall import XCallbackError
 import logging
 import random
 import string
@@ -41,7 +41,7 @@ TEST_STRING = ur""" -- () ? & ' " ‘quoted text’ _x_y_z_ a://b.c/d?e=f&g=h"""
 # pyunit fixture
 
 def setup_module(module):
-    xcall_ulysses.token_provider.token = MANUALLY_CONFIGURED_TOKEN
+    xcall.token_provider.token = MANUALLY_CONFIGURED_TOKEN
 
 
 @pytest.fixture(scope='module')
@@ -96,14 +96,14 @@ def test_get_root_items__recursive():
 
 
 def test_get_root_items_with_wrong_access_token():
-    original_token = xcall_ulysses.token_provider.token
+    original_token = xcall.token_provider.token
     try:
-        xcall_ulysses.token_provider.token = 'not_the_right_token'
+        xcall.token_provider.token = 'not_the_right_token'
         with pytest.raises(XCallbackError) as excinfo:
             ulysses.get_root_items()
         assert 'Access denied. Code = 4' in str(excinfo.value)
     finally:
-        xcall_ulysses.token_provider.token = original_token
+        xcall.token_provider.token = original_token
 
 
 @pytest.mark.skip(reason='Takes 20s to fail for some reason')
