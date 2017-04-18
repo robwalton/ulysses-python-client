@@ -72,12 +72,12 @@ The code and the documentation are released under the MIT and Creative Commons A
 
 ## TODO
 
+- Do something useful with this
 - Add links up to parent groups
 - Logging should go somwhere sensible and include level
 - Add to PiPy
-  - add tox
-  - create setup.py
+  - complete setup.py
   - document testing
 - implement attach-image call
-- Do something useful with this
+
   
