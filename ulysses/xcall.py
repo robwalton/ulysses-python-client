@@ -25,10 +25,9 @@ Extend NonPersistedTokenProvider and set token_provider after importing module.
 
 import urllib
 import logging
-from AppKit import NSWorkspace  # @UnresolvedImport
-import Foundation as fn
 import os
 import json
+import subprocess
 
 
 ROOT_PATH = '/'.join(
@@ -98,9 +97,9 @@ def xcall(url):
 
     May raise XCallbackError with error message and code from Ulysses.
     """
-    from subprocess import Popen, PIPE
-    p = Popen([XCALL_PATH, '-url', url],
-              stdout=PIPE, stderr=PIPE)
+
+    p = subprocess.Popen([XCALL_PATH, '-url', url],
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
 
     assert (stdout == '') or (stderr == '')
@@ -119,9 +118,14 @@ def call(url):
     Will notice any error message from Ulysses.
     """
 
-    ws = NSWorkspace.sharedWorkspace()
-    ns_url = fn.NSURL.URLWithString_(url)  # @UndefinedVariable
-    ws.openURL_(ns_url)
+    p = subprocess.Popen(
+        ['open', url], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    _, stderr = p.communicate()
+    if stderr:
+        raise Exception("Problem opening '%(url)s': '%(stderr)s'" % locals())
+#     ws = NSWorkspace.sharedWorkspace()
+#     ns_url = fn.NSURL.URLWithString_(url)  # @UndefinedVariable
+#     ws.openURL_(ns_url)
 #     options = NSWorkspaceLaunchWithoutActivation if leave_ulysses_in_background else 0  # @IgnorePep8
 #     s_withAppBundleIdentifier_options_additionalEventParamDescriptor_launchIdentifiers_(  # @IgnorePep8
 #         [ns_url], None, options,  None, None)
