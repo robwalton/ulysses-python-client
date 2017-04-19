@@ -308,7 +308,7 @@ def open_all():  # @ReservedAssignment
 
 def open_recent():  # @ReservedAssignment
     """Open special group 'Last 7 Days', bringing Ulysses forward."""
-    call('ulysses://x-callback-url/open-all')
+    call('ulysses://x-callback-url/open-recent')
 
 
 def open_favorites():  # @ReservedAssignment
