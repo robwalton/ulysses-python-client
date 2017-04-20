@@ -47,8 +47,8 @@ class UlyssesError(xcall.XCallbackError):
     pass
 
 
-def ulysses_xerror_handler(stderr, requested_url):
-    d = eval(stderr)
+def ulysses_xerror_handler(xerror, requested_url):
+    d = eval(xerror)
     error_message = d['errorMessage']
     if error_message[-1] != '.':
         error_message += '.'
