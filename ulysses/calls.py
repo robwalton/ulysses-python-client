@@ -181,33 +181,36 @@ def get_quick_look_url(id):  # @ReservedAssignment
     return uri.replace('file://', '')
 
 
-def new_group(name, parent=None, index=None):
+def new_group(name, parent=None, index=None, silent_mode=False):
     """Create new group and return id.
 
-    parent -- Name, path or id of parent. Create in top-level if None
-    index -- Position of group in parent. 0 is first.
+    parent -- name, path or id of parent. Create in top-level if None
+    index -- position of group in parent. 0 is first
+    silent_mode -- don't show change in Ulysses if True
     """
     identifier = call_ulysses('new-group', locals())['targetId']
     assert isID(identifier)
     return identifier
 
 
-def set_group_title(group, title):
+def set_group_title(group, title, silent_mode=False):
     """Change group's title and return id.
 
     group -- Name, path or id of group
     title -- New title string
+    silent_mode -- don't show change in Ulysses if True
     """
     call_ulysses('set-group-title', locals(), send_access_token=True)
 
 
 def new_sheet(text, group=None, format='markdown',  # @ReservedAssignment
-              index=None):
+              index=None, silent_mode=False):
     """Create new sheet and return id.
 
     parent -- Name, path or id of parent. Create in top-level if None
     index -- Position of group in parent. 0 is first.
-    format_ -- 'markdown', 'text' or 'html'
+    format -- 'markdown', 'text' or 'html'
+    silent_mode -- don't show change in Ulysses if True
 
     """
     assert format in ('markdown', 'text', 'html', None)
@@ -216,14 +219,16 @@ def new_sheet(text, group=None, format='markdown',  # @ReservedAssignment
     return identifier
 
 
-def set_sheet_title(sheet, title, type):  # @ReservedAssignment
+def set_sheet_title(sheet, title, type,  # @ReservedAssignment
+                    silent_mode=False):
     """Change first paragraph of sheet.
 
-    sheet -- Identifier of sheet to chang
+    sheet -- Identifier of sheet to change
     title -- New title string. Will be URL-encoded
     type -- The markup type of the title. Will be 'heading1'...'heading6',
             'comment' or 'filename' (on external folders with title
             e.g '@: My Filename'
+    silent_mode -- don't show change in Ulysses if True
     """
     assert type in ('heading1', 'heading2', 'heading3', 'heading4', 'heading5',
                     'heading6', 'comment', 'filename')
@@ -231,7 +236,7 @@ def set_sheet_title(sheet, title, type):  # @ReservedAssignment
 
 
 def insert(id, text, format='markdown', position='end',  # @ReservedAssignment
-           newline=None):
+           newline=None, silent_mode=False):
     """Insert or append text to a sheet.
 
     id -- id of sheet
@@ -239,6 +244,7 @@ def insert(id, text, format='markdown', position='end',  # @ReservedAssignment
     format -- 'markdown', 'text' or 'html'
     position -- 'begin' or 'end'
     newline -- 'prepend', 'append', 'enclose' or None
+    silent_mode -- don't show change in Ulysses if True
 
     """
     assert isID(id)
@@ -320,6 +326,8 @@ def move(id, targetGroup=None, index=None,  # @ReservedAssignment
                    provided
     index -- integer position in group to mve to. Optional if targetIdentifier
              provided
+    silent_mode -- don't show change in Ulysses if True
+
     """
     assert targetGroup or (index is not None)
     params = dict(locals())
@@ -337,6 +345,8 @@ def copy(id, targetGroup=None, index=None,  # @ReservedAssignment
                    provided
     index -- integer position in group to mve to. Optional if targetIdentifier
              provided
+    silent_mode -- don't show change in Ulysses if True
+
     """
     assert targetGroup or index
     params = dict(locals())
@@ -346,7 +356,7 @@ def copy(id, targetGroup=None, index=None,  # @ReservedAssignment
 
 
 def open(id):  # @ReservedAssignment
-    """Open item, bringing Ulysses forward
+    """Open item, bringing Ulysses forward.
 
     identifier -- id of sheet to move
     id -- id, path or group-name to open
