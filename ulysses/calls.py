@@ -5,17 +5,12 @@
 # MIT Licence. See http://opensource.org/licenses/MIT
 #
 # Created on 2017-04-17
-#
 
-"""Ulysses client.
 
-Provides a 1:1 mapping to Ulysses x-callback-url APi defined at:
+"""
+Ulysses calls described at:
 
-    https://ulyssesapp.com/kb/x-callback-url/
-
-as well as classes to represent read only Groups (inlcluding filters and trash)
-and Sheets
-
+- https://ulyssesapp.com/kb/x-callback-url/
 """
 
 import json

@@ -42,6 +42,18 @@ dULx6YXeWVqCZzrpsH7-3A -       test sheet
 YHlYv7PlYgtm626haxAF4A -    Project:
 ...
 ```
+
+## Testing
+Running the tests requires the `pytest` and `mock` packages and Ulysses. Code your 
+access-token into the top of `test_calls.py`. Get the access token removing the @skip
+mark from test_authorise() in this file. 
+
+From the root package folder call:
+```bash
+MacBook:ulysses-python-client walton$ pytest
+...
+```
+
 ## API calls implemented
 
 - [x]  new-sheet

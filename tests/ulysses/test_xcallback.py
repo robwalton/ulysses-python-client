@@ -8,17 +8,24 @@
 
 import pytest
 
-from ulysses.xcallback import call_ulysses, UlyssesError
+import ulysses.xcallback
 
+from tests.ulysses.test_calls import MANUALLY_CONFIGURED_TOKEN
+
+
+# See comment in test_Calls.py on how to set MANUALLY_CONFIGURED_TOKEN
 
 def test_connection():
-    assert call_ulysses('get-version')['apiVersion'] >= 2
+    assert ulysses.xcallback.call_ulysses('get-version')['apiVersion'] >= 2
+
+
+def test_action_with_access_token():
+    ulysses.xcallback.set_access_token(MANUALLY_CONFIGURED_TOKEN)
+    ulysses.xcallback.call_ulysses('get-root-items', locals(),
+                                   send_access_token=True)
 
 
 def test_xerror():
-    with pytest.raises(UlyssesError) as excinfo:
-        call_ulysses('an-invalid-action')
+    with pytest.raises(ulysses.xcallback.UlyssesError) as excinfo:
+        ulysses.xcallback.call_ulysses('an-invalid-action')
     assert 'Invalid Action. Code=100.' in str(excinfo.value)
-
-
-# Note: should technically test access-token & silent mode
