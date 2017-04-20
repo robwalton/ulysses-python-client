@@ -18,21 +18,19 @@ and Sheets
 
 """
 
-import ulysses.xcall  # @UnusedImport
-from ulysses.xcall import call_ulysses, call
-
-
 import json
 import logging
 import urllib
 
+import xcall
 
-__all__ = ['attach_keywords', 'attach_note', 'authorize', 'call', 'copy',
+
+__all__ = ['attach_keywords', 'attach_note', 'authorize', 'copy',
            'get_item', 'get_quick_look_url', 'get_root_items', 'get_version',
            'insert', 'move', 'new_group', 'new_sheet', 'open', 'open_all',
            'open_favorites', 'open_recent', 'read_sheet', 'remove_keywords',
            'remove_note', 'set_access_token', 'set_group_title',
-           'set_sheet_title', 'trash', 'update_note']
+           'set_sheet_title', 'trash', 'update_note', 'UlyssesError']
 
 
 logging.basicConfig(filename='ulysses-python-client.log',
@@ -41,10 +39,68 @@ logging.basicConfig(filename='ulysses-python-client.log',
 logger = logging.getLogger(__name__)
 
 
+# Token provider
+
+class NonPersistedTokenProvider(object):
+    """Provides an access-token string.
+
+    Atrributes:
+
+    token -- access-token string
+    """
+    def __init__(self, token=None):
+        self.token = token
+
+
+token_provider = NonPersistedTokenProvider()
+
+
 def set_access_token(token):
     """Set access token required for many Ulysses calls."""
-    ulysses.xcall.token_provider.token = token
+    token_provider.token = token
 
+
+# x-callback-url
+
+class UlyssesError(xcall.XCallbackError):
+    """Exception representing an x-error callback from Ulysses.
+    """
+    pass
+
+
+def ulysses_xerror_handler(stderr, requested_url):
+    d = eval(stderr)
+    raise UlyssesError(
+        d['errorMessage'] + ' Code = ' + d['errorCode'] +
+        ". In response to sending the url '%s'." % requested_url)
+
+
+ULYSSES_XCALL = xcall.XCallClient('ulysses', ulysses_xerror_handler,
+                                  json_decode_success=True)
+
+
+def call_ulysses(action, params={}, send_access_token=False,
+                 silent_mode=False, activate_ulysses=False):
+    """Perform a Ulysses action and return json restored result.
+
+    action -- the name of the Ulysses action to perform
+    params -- dictionary of parameters to pass with call. None entries will
+              be removed before sending.
+    send_access_token -- append access-token in params if True
+    silent-mode -- append silent-mode=YES to params if True. This prevents
+                   actions which alter Ulysses content from bring Ulysses
+                   forward.
+    """
+
+    if send_access_token:
+        params['access-token'] = token_provider.token
+    if silent_mode:
+        params['silent-mode'] = 'YES'
+
+    return ULYSSES_XCALL.xcall(action, params, activate_app=activate_ulysses)
+
+
+# Calls
 
 def isID(value):
     """Checks if value looks like a Ulysses ID; i.e. is 22 char long.
@@ -298,22 +354,22 @@ def open(id):  # @ReservedAssignment
     assert isID(id)
     # Open directly rather than via xcall, as xcall will not bring Ulysses
     # forward
-    call('ulysses://x-callback-url/open?id=%s' % id)
+    call_ulysses('open', locals(), activate_ulysses=True)
 
 
 def open_all():  # @ReservedAssignment
     """Open special group 'All', bringing Ulysses forward."""
-    call('ulysses://x-callback-url/open-all')
+    call_ulysses('open-all', activate_ulysses=True)
 
 
 def open_recent():  # @ReservedAssignment
     """Open special group 'Last 7 Days', bringing Ulysses forward."""
-    call('ulysses://x-callback-url/open-recent')
+    call_ulysses('open-recent', activate_ulysses=True)
 
 
 def open_favorites():  # @ReservedAssignment
     """Open special group 'All', bringing Ulysses forward."""
-    call('ulysses://x-callback-url/open-favorites')
+    call_ulysses('open-favorites', activate_ulysses=True)
 
 
 # Group & Sheet classes
