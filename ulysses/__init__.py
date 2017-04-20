@@ -8,7 +8,7 @@
 #
 
 
-from .ulysses_calls import *
+from .calls import *
 
 
 def filter_items(items, title, type_='sheet_or_group'):

@@ -9,7 +9,8 @@ Requires:
 - macOS
 - [Ulysses](https://ulyssesapp.com) 2.8
 - python 2.7
-- Uses macOS [xcall](https://github.com/martinfinke/xcall) (included) for x-callback-url support (Thanks Martin Finke!)
+- Uses macOS' [xcall](https://github.com/martinfinke/xcall) (included) for x-callback-url support (Thanks Martin Finke!)
+- Uses [python-xcall](https://github.com/robwalton/python-xcall) (included) to simplify calls to xcall
 - Needs pytest for testing
 
 ## Installation
