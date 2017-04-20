@@ -22,7 +22,6 @@ top level of the Ulysses library in which to build and remove content.
 """
 
 
-from ulysses import calls
 import pytest
 import logging
 import random
@@ -30,6 +29,8 @@ import string
 import time
 import os.path
 
+from ulysses import calls
+import ulysses.xcallback
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +48,7 @@ TEST_STRING = ur""" -- () ? & ' " ‘quoted text’ _x_y_z_ a://b.c/d?e=f&g=h"""
 # pyunit fixture and helpers
 
 def setup_module(module):
-    calls.set_access_token(MANUALLY_CONFIGURED_TOKEN)
+    ulysses.xcallback.set_access_token(MANUALLY_CONFIGURED_TOKEN)
 
 
 @pytest.fixture(scope='module')
@@ -80,7 +81,7 @@ def group(identifier):
 # Test up calls
 
 def test_get_version():
-    assert calls.get_version() == '2'
+    assert calls.get_version() >= 2
 
 
 @pytest.mark.skip(reason='re-enable to see a valid token and then put this'
@@ -106,14 +107,14 @@ def test_get_root_items__recursive():
 
 
 def test_get_root_items_with_wrong_access_token():
-    original_token = calls.token_provider.token
+    original_token = ulysses.xcallback.token_provider.token
     try:
-        calls.token_provider.token = 'not_the_right_token'
+        ulysses.xcallback.token_provider.token = 'not_the_right_token'
         with pytest.raises(calls.UlyssesError) as excinfo:
             calls.get_root_items()
-        assert 'Access denied. Code = 4' in str(excinfo.value)
+        assert 'Access denied. Code=4' in str(excinfo.value)
     finally:
-        calls.token_provider.token = original_token
+        ulysses.xcallback.token_provider.token = original_token
 
 
 @pytest.mark.skip(reason='Takes 20s to fail for some reason')

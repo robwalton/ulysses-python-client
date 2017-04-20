@@ -8,7 +8,15 @@
 #
 
 
+import logging
+
 from .calls import *
+from ulysses.xcallback import set_access_token
+
+
+logging.basicConfig(filename='ulysses-python-client.log',
+                    format='%(asctime)s %(level): %(message)s',
+                    level=logging.DEBUG)
 
 
 def filter_items(items, title, type_='sheet_or_group'):

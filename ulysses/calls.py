@@ -22,95 +22,20 @@ import json
 import logging
 import urllib
 
-import xcall
+from .xcallback import call_ulysses, isID
+from .xcallback import UlyssesError  # @UnusedImport
 
 
 __all__ = ['attach_keywords', 'attach_note', 'authorize', 'copy',
            'get_item', 'get_quick_look_url', 'get_root_items', 'get_version',
            'insert', 'move', 'new_group', 'new_sheet', 'open', 'open_all',
            'open_favorites', 'open_recent', 'read_sheet', 'remove_keywords',
-           'remove_note', 'set_access_token', 'set_group_title',
+           'remove_note', 'set_group_title',
            'set_sheet_title', 'trash', 'update_note', 'UlyssesError']
 
 
-logging.basicConfig(filename='ulysses-python-client.log',
-                    format='%(asctime)s %(message)s',
-                    level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-
-# Token provider
-
-class NonPersistedTokenProvider(object):
-    """Provides an access-token string.
-
-    Atrributes:
-
-    token -- access-token string
-    """
-    def __init__(self, token=None):
-        self.token = token
-
-
-token_provider = NonPersistedTokenProvider()
-
-
-def set_access_token(token):
-    """Set access token required for many Ulysses calls."""
-    token_provider.token = token
-
-
-# x-callback-url
-
-class UlyssesError(xcall.XCallbackError):
-    """Exception representing an x-error callback from Ulysses.
-    """
-    pass
-
-
-def ulysses_xerror_handler(stderr, requested_url):
-    d = eval(stderr)
-    raise UlyssesError(
-        d['errorMessage'] + ' Code = ' + d['errorCode'] +
-        ". In response to sending the url '%s'." % requested_url)
-
-
-ULYSSES_XCALL = xcall.XCallClient('ulysses', ulysses_xerror_handler,
-                                  json_decode_success=True)
-
-
-def call_ulysses(action, params={}, send_access_token=False,
-                 silent_mode=False, activate_ulysses=False):
-    """Perform a Ulysses action and return json restored result.
-
-    action -- the name of the Ulysses action to perform
-    params -- dictionary of parameters to pass with call. None entries will
-              be removed before sending.
-    send_access_token -- append access-token in params if True
-    silent-mode -- append silent-mode=YES to params if True. This prevents
-                   actions which alter Ulysses content from bring Ulysses
-                   forward.
-    """
-
-    if send_access_token:
-        params['access-token'] = token_provider.token
-    if silent_mode:
-        params['silent-mode'] = 'YES'
-
-    return ULYSSES_XCALL.xcall(action, params, activate_app=activate_ulysses)
-
-
-# Calls
-
-def isID(value):
-    """Checks if value looks like a Ulysses ID; i.e. is 22 char long.
-
-    Not an exact science; but good enougth to prevent most mistakes.
-    """
-    return len(value) == 22
-
-
-# Ulysses-calls
 
 def authorize():
     """Return access-token string."""
@@ -120,7 +45,7 @@ def authorize():
 
 def get_version():
     """Return version string."""
-    return call_ulysses('get-version')['apiVersion']
+    return float(call_ulysses('get-version')['apiVersion'])
 
 
 def get_root_items(recursive=True):
