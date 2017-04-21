@@ -8,3 +8,6 @@
 .tox/*
 
 
+/.DS_Store
+/.project
+/.pydevproject
