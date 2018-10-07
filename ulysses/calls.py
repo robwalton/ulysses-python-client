@@ -465,7 +465,7 @@ class SheetWithContent(Sheet):
     notes -- list of strings representing notes in markdown
 
     """
-    def __init__(self,  title=None, type=None,   # @ReservedAssignment
+    def __init__(self,  title=None, type=None, groupName=None, groupId=None,
                  identifier=None, hasLifetimeIdentifier=None,
                  titleType=None, creationDate=None, modificationDate=None,
                  changeToken=None, text=None, keywords=None, notes=None):
